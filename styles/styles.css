@@ -656,6 +656,9 @@ textarea {
 .directory {
   background: var(--bg2);
 }
+main > .directory:first-child {
+  padding-top: 150px;
+}
 .directory-head {
   display: flex;
   align-items: end;
@@ -1162,5 +1165,8 @@ footer {
   .inner-hero h1 {
     font-size: 38px;
     letter-spacing: -1.5px;
+  }
+  main > .directory:first-child {
+    padding-top: 110px;
   }
 }
