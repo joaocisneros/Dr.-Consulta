@@ -1235,13 +1235,18 @@ footer {
 /* Integra los temas dentro de la parte inferior de la portada. */
 @media (min-width: 951px) {
   .home-hero {
-    padding-bottom: 45px;
+    min-height: 940px;
+    padding-bottom: 0;
   }
   .hero-grid {
-    padding-bottom: 205px;
+    padding-bottom: 0;
   }
   .health-topics {
-    margin-top: -205px;
+    position: absolute;
+    right: 0;
+    bottom: 34px;
+    left: 0;
+    margin-top: 0;
   }
   .topics-heading {
     margin-bottom: 12px;
@@ -1250,7 +1255,10 @@ footer {
     font-size: 20px;
   }
   .topic-card {
-    min-height: 190px;
+    min-height: 184px;
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(8px);
   }
 }
 
