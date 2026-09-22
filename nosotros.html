@@ -1,18 +1,191 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Conoce al equipo médico de Dr. Consulta."><title>Nosotros | Dr. Consulta</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="styles/styles.css"></head>
-<body>
-  <header class="site-header solid"><div class="wrap nav-wrap"><a class="brand" href="index.html"><img src="img/logo-dc.png" alt=""><span><b>Dr. Consulta</b><small>Salud cerca de ti</small></span></a><button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false"><i></i><i></i><i></i></button><nav class="main-nav"><a href="index.html">Inicio</a><a class="active" href="nosotros.html">Nosotros</a><a href="index.html#especialidades">Especialidades</a><a href="index.html#como-funciona">Cómo funciona</a><a href="index.html#contacto">Contacto</a><a class="nav-button" href="index.html#citas">Agendar cita</a></nav></div></header>
-  <main>
-    <section class="inner-hero"><div class="wrap"><span class="kicker">Nosotros</span><h1>Conoce a nuestro <em>equipo médico</em></h1><p>Profesionales comprometidos con una atención humana, clara y centrada en ti.</p><div class="values"><span>◎ Atención cercana</span><span>◇ Medicina con propósito</span><span>♡ Bienestar integral</span></div></div></section>
-    <section class="section about-brand"><div class="wrap about-grid"><div class="reveal"><span class="kicker">La comunidad Dr. Consulta</span><h2>Distintas especialidades, un mismo compromiso</h2></div><div class="reveal"><p>Reunimos profesionales de distintas áreas para facilitar el acceso a una atención confiable y personalizada.</p><p>Conoce su experiencia, encuentra al especialista indicado y reserva desde un mismo lugar.</p></div></div></section>
-    <section class="section directory"><div class="wrap"><div class="directory-head"><div><span class="kicker">Directorio médico</span><h2>Encuentra a tu especialista</h2></div><label class="search-box">⌕ <input id="doctorSearch" placeholder="Buscar por nombre o especialidad"></label></div><div class="filter-row"><button class="filter active" data-filter="all">Todos</button><button class="filter" data-filter="deporte">Medicina deportiva</button><button class="filter" data-filter="nutricion">Nutrición</button><button class="filter" data-filter="familiar">Medicina familiar</button></div>
-      <div class="doctor-grid directory-grid">
-        <article class="doctor-card" data-category="deporte" data-search="carlos mendoza medicina deportiva"><div class="doctor-image"><img src="img/dr-carlos-mendoza.png" alt="Dr. Carlos Mendoza"><span>Medicina deportiva</span></div><div class="doctor-info"><h3>Dr. Carlos Mendoza</h3><small>CMP 123456 · 10 años de experiencia</small><p>Prevención, diagnóstico y recuperación de lesiones deportivas.</p><div class="availability">● Disponible esta semana</div><div><a class="btn outline" href="perfil-doctor.html?doctor=carlos">Ver perfil</a><a class="btn primary" href="https://wa.me/51999999999?text=Hola%2C%20deseo%20una%20cita%20con%20el%20Dr.%20Carlos%20Mendoza">WhatsApp</a></div></div></article>
-        <article class="doctor-card" data-category="nutricion" data-search="ana torres nutricion clinica"><div class="doctor-image"><img src="img/dra-ana-torres.png" alt="Dra. Ana Torres"><span>Nutrición clínica</span></div><div class="doctor-info"><h3>Dra. Ana Torres</h3><small>CNP 12345 · 8 años de experiencia</small><p>Planes nutricionales personalizados y educación alimentaria.</p><div class="availability">● Disponible esta semana</div><div><a class="btn outline" href="perfil-doctor.html?doctor=ana">Ver perfil</a><a class="btn primary" href="https://wa.me/51999999999?text=Hola%2C%20deseo%20una%20cita%20con%20la%20Dra.%20Ana%20Torres">WhatsApp</a></div></div></article>
-        <article class="doctor-card" data-category="familiar" data-search="luis ramirez medicina familiar"><div class="doctor-image"><img src="img/dr-luis-ramirez.png" alt="Dr. Luis Ramírez"><span>Medicina familiar</span></div><div class="doctor-info"><h3>Dr. Luis Ramírez</h3><small>CMP 654321 · 15 años de experiencia</small><p>Prevención y atención integral para adultos y familias.</p><div class="availability">● Próxima cita: lunes</div><div><a class="btn outline" href="perfil-doctor.html?doctor=luis">Ver perfil</a><a class="btn primary" href="https://wa.me/51999999999?text=Hola%2C%20deseo%20una%20cita%20con%20el%20Dr.%20Luis%20Ram%C3%ADrez">WhatsApp</a></div></div></article>
-      </div><p class="empty-state">No encontramos especialistas con esa búsqueda.</p>
-    </div></section>
-  </main>
-  <footer><div class="wrap footer-grid"><div class="brand"><img src="img/logo-dc.png" alt=""><span><b>Dr. Consulta</b><small>Salud cerca de ti</small></span></div><p>Una comunidad de profesionales comprometidos con tu bienestar.</p><div><a href="index.html">Inicio</a><a href="index.html#especialidades">Especialidades</a><a href="index.html#contacto">Contacto</a></div><small>© 2026 Dr. Consulta. Propuesta demostrativa.</small></div></footer><a class="whatsapp" href="https://wa.me/51999999999" target="_blank" rel="noopener">WhatsApp</a><button class="top-button" aria-label="Volver arriba">↑</button><script src="script/script.js"></script>
-</body></html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Conoce al equipo médico de Dr. Consulta."
+    />
+    <title>Nosotros | Dr. Consulta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/styles.css" />
+  </head>
+  <body>
+    <header class="site-header solid">
+      <div class="wrap nav-wrap">
+        <a class="brand" href="index.html"
+          ><img src="img/logo-dc.png" alt="" /><span
+            ><b>Dr. Consulta</b><small>Salud cerca de ti</small></span
+          ></a
+        ><button
+          class="menu-toggle"
+          aria-label="Abrir menú"
+          aria-expanded="false"
+        >
+          <i></i><i></i><i></i>
+        </button>
+        <nav class="main-nav">
+          <a href="index.html">Inicio</a
+          ><a class="active" href="nosotros.html">Nosotros</a
+          ><a href="index.html#especialidades">Especialidades</a
+          ><a href="index.html#citas">Citas</a
+          ><a href="index.html#contacto">Contacto</a
+          ><a class="nav-button" href="index.html#citas">Agendar cita</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <section class="inner-hero">
+        <div class="wrap">
+          <span class="kicker">Equipo médico</span>
+          <h1>Conoce a nuestros <em>especialistas</em></h1>
+          <p>Busca por nombre o especialidad y revisa cada perfil.</p>
+        </div>
+      </section>
+      <section class="section directory">
+        <div class="wrap">
+          <div class="directory-head">
+            <div>
+              <span class="kicker">Directorio médico</span>
+              <h2>Encuentra a tu especialista</h2>
+            </div>
+            <label class="search-box"
+              >⌕
+              <input
+                id="doctorSearch"
+                placeholder="Buscar por nombre o especialidad"
+            /></label>
+          </div>
+          <div class="filter-row">
+            <button class="filter active" data-filter="all">Todos</button
+            ><button class="filter" data-filter="deporte">
+              Medicina deportiva</button
+            ><button class="filter" data-filter="nutricion">Nutrición</button
+            ><button class="filter" data-filter="familiar">
+              Medicina familiar
+            </button>
+          </div>
+          <div class="doctor-grid directory-grid">
+            <article
+              class="doctor-card"
+              data-category="deporte"
+              data-search="carlos mendoza medicina deportiva"
+            >
+              <div class="doctor-image">
+                <img
+                  src="img/dr-carlos-mendoza.png"
+                  alt="Dr. Carlos Mendoza"
+                /><span>Medicina deportiva</span>
+              </div>
+              <div class="doctor-info">
+                <h3>Dr. Carlos Mendoza</h3>
+                <small>CMP 123456 · 10 años de experiencia</small>
+                <p>
+                  Prevención, diagnóstico y recuperación de lesiones deportivas.
+                </p>
+                <div class="availability">● Disponible esta semana</div>
+                <div>
+                  <a class="btn outline" href="perfil-doctor.html?doctor=carlos"
+                    >Ver perfil</a
+                  ><a
+                    class="btn primary"
+                    href="https://wa.me/51999999999?text=Hola%2C%20deseo%20una%20cita%20con%20el%20Dr.%20Carlos%20Mendoza"
+                    >WhatsApp</a
+                  >
+                </div>
+              </div>
+            </article>
+            <article
+              class="doctor-card"
+              data-category="nutricion"
+              data-search="ana torres nutricion clinica"
+            >
+              <div class="doctor-image">
+                <img src="img/dra-ana-torres.png" alt="Dra. Ana Torres" /><span
+                  >Nutrición clínica</span
+                >
+              </div>
+              <div class="doctor-info">
+                <h3>Dra. Ana Torres</h3>
+                <small>CNP 12345 · 8 años de experiencia</small>
+                <p>
+                  Planes nutricionales personalizados y educación alimentaria.
+                </p>
+                <div class="availability">● Disponible esta semana</div>
+                <div>
+                  <a class="btn outline" href="perfil-doctor.html?doctor=ana"
+                    >Ver perfil</a
+                  ><a
+                    class="btn primary"
+                    href="https://wa.me/51999999999?text=Hola%2C%20deseo%20una%20cita%20con%20la%20Dra.%20Ana%20Torres"
+                    >WhatsApp</a
+                  >
+                </div>
+              </div>
+            </article>
+            <article
+              class="doctor-card"
+              data-category="familiar"
+              data-search="luis ramirez medicina familiar"
+            >
+              <div class="doctor-image">
+                <img
+                  src="img/dr-luis-ramirez.png"
+                  alt="Dr. Luis Ramírez"
+                /><span>Medicina familiar</span>
+              </div>
+              <div class="doctor-info">
+                <h3>Dr. Luis Ramírez</h3>
+                <small>CMP 654321 · 15 años de experiencia</small>
+                <p>Prevención y atención integral para adultos y familias.</p>
+                <div class="availability">● Próxima cita: lunes</div>
+                <div>
+                  <a class="btn outline" href="perfil-doctor.html?doctor=luis"
+                    >Ver perfil</a
+                  ><a
+                    class="btn primary"
+                    href="https://wa.me/51999999999?text=Hola%2C%20deseo%20una%20cita%20con%20el%20Dr.%20Luis%20Ram%C3%ADrez"
+                    >WhatsApp</a
+                  >
+                </div>
+              </div>
+            </article>
+          </div>
+          <p class="empty-state">
+            No encontramos especialistas con esa búsqueda.
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <div class="wrap footer-grid">
+        <div class="brand">
+          <img src="img/logo-dc.png" alt="" /><span
+            ><b>Dr. Consulta</b><small>Salud cerca de ti</small></span
+          >
+        </div>
+        <p>Una comunidad de profesionales comprometidos con tu bienestar.</p>
+        <div>
+          <a href="index.html">Inicio</a
+          ><a href="index.html#especialidades">Especialidades</a
+          ><a href="index.html#contacto">Contacto</a>
+        </div>
+        <small>© 2026 Dr. Consulta. Propuesta demostrativa.</small>
+      </div>
+    </footer>
+    <a
+      class="whatsapp"
+      href="https://wa.me/51999999999"
+      target="_blank"
+      rel="noopener"
+      >WhatsApp</a
+    ><button class="top-button" aria-label="Volver arriba">↑</button>
+    <script src="script/script.js"></script>
+  </body>
+</html>
