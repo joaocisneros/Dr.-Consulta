@@ -1232,6 +1232,28 @@ footer {
   }
 }
 
+/* Integra los temas dentro de la parte inferior de la portada. */
+@media (min-width: 951px) {
+  .home-hero {
+    padding-bottom: 45px;
+  }
+  .hero-grid {
+    padding-bottom: 205px;
+  }
+  .health-topics {
+    margin-top: -205px;
+  }
+  .topics-heading {
+    margin-bottom: 12px;
+  }
+  .topics-heading h2 {
+    font-size: 20px;
+  }
+  .topic-card {
+    min-height: 190px;
+  }
+}
+
 /* Tarjetas de especialidades con fotografía. */
 .specialty {
   padding: 0;
