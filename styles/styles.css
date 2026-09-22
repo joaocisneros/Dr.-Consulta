@@ -1165,6 +1165,30 @@ footer {
 .specialty-body p {
   min-height: 44px;
 }
+
+/* Mayor presencia del logotipo en la navegación. */
+.nav-wrap {
+  height: 90px;
+}
+.brand img {
+  width: 66px;
+  height: 66px;
+}
+.brand b {
+  font-size: 21px;
+}
+@media (max-width: 620px) {
+  .nav-wrap {
+    height: 78px;
+  }
+  .brand img {
+    width: 54px;
+    height: 54px;
+  }
+  .brand b {
+    font-size: 18px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
