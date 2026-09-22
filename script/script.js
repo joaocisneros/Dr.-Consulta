@@ -77,6 +77,60 @@ filterButtons.forEach((button) =>
 );
 doctorSearch?.addEventListener("input", filterDoctors);
 
+const specialtyFromUrl = new URLSearchParams(location.search).get("especialidad");
+if (specialtyFromUrl && filterButtons.length) {
+  const matchingFilter = document.querySelector(
+    `.filter[data-filter="${specialtyFromUrl}"]`,
+  );
+  if (matchingFilter) {
+    filterButtons.forEach((button) => button.classList.remove("active"));
+    matchingFilter.classList.add("active");
+    filterDoctors();
+  }
+}
+
+const topicsSlider = document.querySelector(".topics-slider");
+const topicsTrack = document.querySelector(".topics-track");
+if (topicsSlider && topicsTrack) {
+  const originalCards = [...topicsTrack.children];
+  originalCards.forEach((card) => {
+    const clone = card.cloneNode(true);
+    clone.setAttribute("aria-hidden", "true");
+    clone.tabIndex = -1;
+    topicsTrack.appendChild(clone);
+  });
+
+  const cardStep = () => {
+    const card = topicsTrack.querySelector(".topic-card");
+    return card ? card.getBoundingClientRect().width + 14 : 238;
+  };
+  const originalWidth = () => cardStep() * originalCards.length;
+  const moveTopics = (direction = 1) => {
+    topicsSlider.scrollBy({ left: cardStep() * direction, behavior: "smooth" });
+    window.setTimeout(() => {
+      if (topicsSlider.scrollLeft >= originalWidth() - 2) topicsSlider.scrollLeft = 0;
+      if (topicsSlider.scrollLeft < 1 && direction < 0)
+        topicsSlider.scrollLeft = originalWidth() - cardStep();
+    }, 520);
+  };
+
+  document.querySelector(".topic-next")?.addEventListener("click", () => moveTopics(1));
+  document.querySelector(".topic-prev")?.addEventListener("click", () => moveTopics(-1));
+
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    let topicTimer = window.setInterval(() => moveTopics(1), 3200);
+    const pauseTopics = () => window.clearInterval(topicTimer);
+    const resumeTopics = () => {
+      window.clearInterval(topicTimer);
+      topicTimer = window.setInterval(() => moveTopics(1), 3200);
+    };
+    topicsSlider.addEventListener("mouseenter", pauseTopics);
+    topicsSlider.addEventListener("mouseleave", resumeTopics);
+    topicsSlider.addEventListener("touchstart", pauseTopics, { passive: true });
+    topicsSlider.addEventListener("touchend", resumeTopics, { passive: true });
+  }
+}
+
 const doctors = {
   carlos: {
     name: "Dr. Carlos Mendoza",
