@@ -1130,6 +1130,41 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* Tarjetas de especialidades con fotografía. */
+.specialty {
+  padding: 0;
+  overflow: hidden;
+}
+.specialty-photo {
+  position: relative;
+  height: 175px;
+  overflow: hidden;
+}
+.specialty-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 45%, rgba(9, 13, 21, 0.58));
+}
+.specialty-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+.specialty:hover .specialty-photo img {
+  transform: scale(1.045);
+}
+.specialty-body {
+  padding: 24px 25px 27px;
+}
+.specialty-body h3 {
+  margin-top: 0;
+}
+.specialty-body p {
+  min-height: 44px;
+}
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
