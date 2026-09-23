@@ -11,7 +11,7 @@ if (fs.existsSync(envFile)) {
   }
 }
 
-const port = Number(process.env.PORT || 3000);
+const port = Number(process.env.PORT || 4317);
 const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 const mime = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".png":"image/png", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".webp":"image/webp" };
 const limits = new Map();

@@ -85,7 +85,7 @@ if (medicalChat) {
     messages.scrollTop = messages.scrollHeight;
     try {
       const localHost = ["localhost", "127.0.0.1", ""].includes(location.hostname);
-      const apiUrl = localHost ? "http://localhost:3000/api/chat" : "/api/chat";
+      const apiUrl = localHost ? "http://localhost:4317/api/chat" : "/api/chat";
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
