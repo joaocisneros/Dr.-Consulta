@@ -4,7 +4,14 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check script/script.js"
+    "check": "node --check server.js && node --check script/script.js && node --check worker/index.mjs",
+    "worker:dev": "wrangler dev",
+    "worker:deploy": "wrangler deploy"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "wrangler": "^4.136.3"
+  }
 }

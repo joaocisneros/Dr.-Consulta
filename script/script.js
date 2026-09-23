@@ -89,7 +89,9 @@ if (medicalChat) {
     messages.scrollTop = messages.scrollHeight;
     try {
       const localHost = ["localhost", "127.0.0.1", ""].includes(location.hostname);
-      const apiUrl = localHost ? "http://localhost:4317/api/chat" : "/api/chat";
+      const apiUrl = localHost
+        ? "http://localhost:4317/api/chat"
+        : "https://dr-consulta-api.dr-consulta.workers.dev/api/chat";
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -100,11 +102,7 @@ if (medicalChat) {
       addMessage(data.answer || data.error || "No pude responder en este momento.", "bot");
     } catch {
       waiting.remove();
-      if (location.hostname.endsWith("github.io")) {
-        addMessage("Esta es una vista demostrativa. El asistente con inteligencia artificial estará disponible en la versión final.", "bot");
-      } else {
-        addMessage("No pude comunicarme con Gemini. Confirma que el servidor esté activo e inténtalo nuevamente.", "bot");
-      }
+      addMessage("El asistente no está disponible temporalmente. Inténtalo nuevamente en unos minutos.", "bot");
     }
   };
   medicalChat.querySelectorAll("[data-chat]").forEach((button) => button.addEventListener("click", () => {
