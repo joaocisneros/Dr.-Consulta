@@ -50,6 +50,8 @@ if (form)
 
 const medicalChat = document.querySelector(".medical-chat");
 if (medicalChat) {
+  const chatStorageKey = "drConsultaChatHistory";
+  const chatOpenKey = "drConsultaChatOpen";
   const launcher = medicalChat.querySelector(".chat-launcher");
   const panel = medicalChat.querySelector(".chat-panel");
   const close = medicalChat.querySelector(".chat-close");
@@ -60,6 +62,7 @@ if (medicalChat) {
     medicalChat.classList.toggle("open", open);
     launcher.setAttribute("aria-expanded", String(open));
     panel.setAttribute("aria-hidden", String(!open));
+    sessionStorage.setItem(chatOpenKey, String(open));
     if (open) window.setTimeout(() => chatInput.focus(), 250);
   };
   launcher.addEventListener("click", () => toggleChat(!medicalChat.classList.contains("open")));
@@ -70,7 +73,14 @@ if (medicalChat) {
     cita: "Puedes reservar desde el botón Agendar cita. Si prefieres atención personal, también podemos comunicarte con recepción.",
     horario: "Atendemos de lunes a viernes de 8:00 a.m. a 7:00 p.m. La disponibilidad depende de cada especialista.",
   };
-  const addMessage = (text, type) => {
+  let chatHistory = [];
+  try {
+    chatHistory = JSON.parse(sessionStorage.getItem(chatStorageKey) || "[]");
+    if (!Array.isArray(chatHistory)) chatHistory = [];
+  } catch {
+    chatHistory = [];
+  }
+  const addMessage = (text, type, persist = true) => {
     const item = document.createElement("div");
     item.className = `chat-message ${type}`;
     item.textContent = String(text)
@@ -80,7 +90,14 @@ if (medicalChat) {
       .trim();
     messages.appendChild(item);
     messages.scrollTop = messages.scrollHeight;
+    if (persist) {
+      chatHistory.push({ text: item.textContent, type });
+      chatHistory = chatHistory.slice(-12);
+      sessionStorage.setItem(chatStorageKey, JSON.stringify(chatHistory));
+    }
   };
+  chatHistory.forEach((message) => addMessage(message.text, message.type, false));
+  if (sessionStorage.getItem(chatOpenKey) === "true") toggleChat(true);
   const askGemini = async (text) => {
     const waiting = document.createElement("div");
     waiting.className = "chat-message bot chat-waiting";
