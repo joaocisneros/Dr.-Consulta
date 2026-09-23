@@ -48,6 +48,59 @@ if (form)
     form.reset();
   });
 
+const medicalChat = document.querySelector(".medical-chat");
+if (medicalChat) {
+  const launcher = medicalChat.querySelector(".chat-launcher");
+  const panel = medicalChat.querySelector(".chat-panel");
+  const close = medicalChat.querySelector(".chat-close");
+  const messages = medicalChat.querySelector(".chat-messages");
+  const chatForm = medicalChat.querySelector(".chat-form");
+  const chatInput = chatForm.querySelector("input");
+  const toggleChat = (open) => {
+    medicalChat.classList.toggle("open", open);
+    launcher.setAttribute("aria-expanded", String(open));
+    panel.setAttribute("aria-hidden", String(!open));
+    if (open) window.setTimeout(() => chatInput.focus(), 250);
+  };
+  launcher.addEventListener("click", () => toggleChat(!medicalChat.classList.contains("open")));
+  close.addEventListener("click", () => toggleChat(false));
+
+  const answers = {
+    especialidad: "Cuéntame brevemente qué tipo de atención buscas. Puedo orientarte entre medicina familiar, deportiva o nutrición clínica.",
+    cita: "Puedes reservar desde el botón Agendar cita. Si prefieres atención personal, también podemos comunicarte con recepción.",
+    horario: "Atendemos de lunes a viernes de 8:00 a.m. a 7:00 p.m. La disponibilidad depende de cada especialista.",
+  };
+  const addMessage = (text, type) => {
+    const item = document.createElement("div");
+    item.className = `chat-message ${type}`;
+    item.textContent = text;
+    messages.appendChild(item);
+    messages.scrollTop = messages.scrollHeight;
+  };
+  const respond = (text) => {
+    const value = text.toLowerCase();
+    if (/cita|reserva|turno/.test(value)) return answers.cita;
+    if (/hora|horario|atienden/.test(value)) return answers.horario;
+    if (/nutri|peso|aliment/.test(value)) return "Para alimentación, control de peso o metabolismo, revisa Nutrición clínica con la Dra. Ana Torres.";
+    if (/lesión|lesion|rodilla|deporte|dolor muscular/.test(value)) return "Para lesiones o molestias relacionadas con actividad física, puedes revisar Medicina deportiva.";
+    if (/urgencia|emergencia|pecho|respirar|desmayo/.test(value)) return "Si tienes síntomas intensos o una posible emergencia, busca atención de urgencias de inmediato. Este chat no atiende emergencias.";
+    return "Gracias por contármelo. Para orientarte correctamente, revisa nuestros especialistas o solicita contacto con recepción.";
+  };
+  medicalChat.querySelectorAll("[data-chat]").forEach((button) => button.addEventListener("click", () => {
+    const key = button.dataset.chat;
+    addMessage(button.textContent, "user");
+    window.setTimeout(() => addMessage(answers[key], "bot"), 350);
+  }));
+  chatForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const text = chatInput.value.trim();
+    if (!text) return;
+    addMessage(text, "user");
+    chatInput.value = "";
+    window.setTimeout(() => addMessage(respond(text), "bot"), 450);
+  });
+}
+
 const filterButtons = document.querySelectorAll(".filter");
 const doctorCards = document.querySelectorAll(".directory-grid .doctor-card");
 const doctorSearch = document.querySelector("#doctorSearch");

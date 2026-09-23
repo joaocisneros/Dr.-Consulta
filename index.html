@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles/styles.css?v=20260922-7" />
+    <link rel="stylesheet" href="styles/styles.css?v=20260922-8" />
   </head>
   <body>
     <header class="site-header">
@@ -283,13 +283,23 @@
         <small>© 2026 Dr. Consulta. Propuesta demostrativa.</small>
       </div>
     </footer>
-    <a
-      class="whatsapp"
-      href="https://wa.me/51999999999?text=Hola%2C%20deseo%20informaci%C3%B3n%20sobre%20Dr.%20Consulta"
-      target="_blank"
-      rel="noopener"
-      >WhatsApp</a
-    ><button class="top-button" aria-label="Volver arriba">↑</button>
-  <script src="script/script.js?v=20260922-3"></script>
+    <aside class="medical-chat" aria-label="Asistente virtual de Dr. Consulta">
+      <section class="chat-panel" id="chatPanel" aria-hidden="true">
+        <header class="chat-header">
+          <div class="chat-doctor-avatar" aria-hidden="true">✚</div>
+          <div><b>Dr. Bot</b><small><i></i> Asistente virtual</small></div>
+          <button class="chat-close" type="button" aria-label="Cerrar chat">×</button>
+        </header>
+        <div class="chat-messages" aria-live="polite">
+          <div class="chat-message bot">Hola, soy el asistente de Dr. Consulta. ¿En qué podemos orientarte?</div>
+          <div class="chat-options"><button type="button" data-chat="especialidad">Elegir especialista</button><button type="button" data-chat="cita">Reservar una cita</button><button type="button" data-chat="horario">Ver horarios</button></div>
+        </div>
+        <form class="chat-form"><input type="text" maxlength="180" placeholder="Escribe tu consulta..." aria-label="Escribe tu consulta" /><button type="submit" aria-label="Enviar mensaje">➜</button></form>
+        <small class="chat-disclaimer">Orientación general. No reemplaza una consulta médica.</small>
+      </section>
+      <button class="chat-launcher" type="button" aria-expanded="false" aria-controls="chatPanel"><span class="robot-doctor" aria-hidden="true"><i>+</i><b>•‿•</b></span><span><b>¿Necesitas ayuda?</b><small>Consulta con Dr. Bot</small></span></button>
+    </aside>
+    <button class="top-button" aria-label="Volver arriba">↑</button>
+  <script src="script/script.js?v=20260922-4"></script>
   </body>
 </html>
