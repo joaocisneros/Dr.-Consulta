@@ -45,6 +45,7 @@ async function chat(req, res) {
       body:JSON.stringify({ system_instruction:{ parts:[{ text:system }] }, contents:[{ role:"user", parts:[{ text:message }] }], generationConfig:{ maxOutputTokens:600, thinkingConfig:{ thinkingLevel:"minimal" } } })
     });
     const data = await response.json();
+    if (response.status === 429) return json(res, 429, { error:"Hay muchas consultas en este momento. Espera 30 segundos e inténtalo nuevamente." });
     if (!response.ok) {
       console.error("Gemini API:", response.status, data.error?.message || "Error desconocido");
       return json(res, 502, { error:"Gemini rechazó la solicitud. Revisa la clave, el modelo y la cuota." });

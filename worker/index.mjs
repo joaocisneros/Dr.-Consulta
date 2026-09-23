@@ -49,7 +49,8 @@ export default {
         }),
       });
       const data = await response.json();
-      if (!response.ok) return json({ error: "Gemini no pudo responder. Revisa la cuota de la API." }, 502, origin);
+      if (response.status === 429) return json({ error: "Hay muchas consultas en este momento. Espera 30 segundos e inténtalo nuevamente." }, 429, origin);
+      if (!response.ok) return json({ error: "El asistente no pudo responder en este momento." }, 502, origin);
       const answer = data.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("").trim();
       return answer ? json({ answer }, 200, origin) : json({ error: "Gemini no devolvió una respuesta." }, 502, origin);
     } catch {

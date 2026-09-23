@@ -86,6 +86,10 @@ if (medicalChat) {
     chatStorageKey,
     JSON.stringify({ items: chatHistory, savedAt: Date.now() }),
   );
+  if (chatHistory.length) {
+    messages.querySelector(".chat-message.bot")?.remove();
+    messages.querySelector(".chat-options")?.remove();
+  }
   const addMessage = (text, type, persist = true) => {
     const item = document.createElement("div");
     item.className = `chat-message ${type}`;
@@ -103,8 +107,16 @@ if (medicalChat) {
     }
   };
   chatHistory.forEach((message) => addMessage(message.text, message.type, false));
-  if (sessionStorage.getItem(chatOpenKey) === "true") toggleChat(true);
+  if (sessionStorage.getItem(chatOpenKey) === "true") {
+    toggleChat(true);
+    requestAnimationFrame(() => { messages.scrollTop = messages.scrollHeight; });
+  }
+  let chatBusy = false;
   const askGemini = async (text) => {
+    if (chatBusy) return;
+    chatBusy = true;
+    chatInput.disabled = true;
+    medicalChat.querySelectorAll("[data-chat], .chat-form button").forEach((button) => { button.disabled = true; });
     const waiting = document.createElement("div");
     waiting.className = "chat-message bot chat-waiting";
     waiting.textContent = "Pensando…";
@@ -126,6 +138,11 @@ if (medicalChat) {
     } catch {
       waiting.remove();
       addMessage("El asistente no está disponible temporalmente. Inténtalo nuevamente en unos minutos.", "bot");
+    } finally {
+      chatBusy = false;
+      chatInput.disabled = false;
+      medicalChat.querySelectorAll("[data-chat], .chat-form button").forEach((button) => { button.disabled = false; });
+      chatInput.focus();
     }
   };
   medicalChat.querySelectorAll("[data-chat]").forEach((button) => button.addEventListener("click", () => {
