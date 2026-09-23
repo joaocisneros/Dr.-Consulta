@@ -17,7 +17,7 @@ const mime = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf
 const limits = new Map();
 
 function json(res, status, data) {
-  res.writeHead(status, { "Content-Type":"application/json; charset=utf-8", "Cache-Control":"no-store" });
+  res.writeHead(status, { "Content-Type":"application/json; charset=utf-8", "Cache-Control":"no-store", "Access-Control-Allow-Origin":"*" });
   res.end(JSON.stringify(data));
 }
 
@@ -58,6 +58,10 @@ async function chat(req, res) {
 }
 
 http.createServer(async (req, res) => {
+  if (req.method === "OPTIONS" && req.url === "/api/chat") {
+    res.writeHead(204, { "Access-Control-Allow-Origin":"*", "Access-Control-Allow-Methods":"POST, OPTIONS", "Access-Control-Allow-Headers":"Content-Type" });
+    return res.end();
+  }
   if (req.method === "POST" && req.url === "/api/chat") return chat(req, res);
   const requestPath = decodeURIComponent((req.url || "/").split("?")[0]);
   const relative = requestPath === "/" ? "index.html" : requestPath.replace(/^\/+/, "");
