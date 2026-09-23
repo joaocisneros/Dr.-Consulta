@@ -69,6 +69,12 @@ if (medicalChat) {
   launcher.addEventListener("click", () => toggleChat(!medicalChat.classList.contains("open")));
   close.addEventListener("click", () => toggleChat(false));
 
+  const quickAnswers = {
+    especialidad: "Cuéntame con tus propias palabras qué molestia tienes o qué tipo de atención buscas, y te orientaré con el especialista adecuado.",
+    cita: "Para reservar, indícame con qué especialista deseas atenderte y qué horario prefieres. También puedes usar el botón Agendar cita de la página.",
+    horario: "Atendemos de lunes a viernes, de 8:00 a.m. a 7:00 p.m. La disponibilidad específica depende de cada profesional.",
+  };
+
   let chatHistory = [];
   try {
     const savedChat = JSON.parse(localStorage.getItem(chatStorageKey) || "null");
@@ -123,6 +129,11 @@ if (medicalChat) {
     location.reload();
   });
   let chatBusy = false;
+  medicalChat.querySelectorAll("[data-chat]").forEach((button) => button.addEventListener("click", () => {
+    const key = button.dataset.chat;
+    addMessage(button.textContent, "user");
+    window.setTimeout(() => addMessage(quickAnswers[key], "bot"), 250);
+  }));
   const askGemini = async (text) => {
     if (chatBusy) return;
     chatBusy = true;
