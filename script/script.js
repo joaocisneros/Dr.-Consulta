@@ -73,7 +73,11 @@ if (medicalChat) {
   const addMessage = (text, type) => {
     const item = document.createElement("div");
     item.className = `chat-message ${type}`;
-    item.textContent = text;
+    item.textContent = String(text)
+      .replace(/\*\*/g, "")
+      .replace(/^#{1,6}\s*/gm, "")
+      .replace(/^\s*[-•]\s+/gm, "• ")
+      .trim();
     messages.appendChild(item);
     messages.scrollTop = messages.scrollHeight;
   };
@@ -96,7 +100,11 @@ if (medicalChat) {
       addMessage(data.answer || data.error || "No pude responder en este momento.", "bot");
     } catch {
       waiting.remove();
-      addMessage("La conexión con Gemini aún no está activa en este servidor.", "bot");
+      if (location.hostname.endsWith("github.io")) {
+        addMessage("Esta es una vista demostrativa. El asistente con inteligencia artificial estará disponible en la versión final.", "bot");
+      } else {
+        addMessage("No pude comunicarme con Gemini. Confirma que el servidor esté activo e inténtalo nuevamente.", "bot");
+      }
     }
   };
   medicalChat.querySelectorAll("[data-chat]").forEach((button) => button.addEventListener("click", () => {
