@@ -79,7 +79,7 @@ if (medicalChat) {
     const savedChat = JSON.parse(localStorage.getItem(chatStorageKey) || "null");
     const isRecent = savedChat && Date.now() - savedChat.savedAt < 6 * 60 * 60 * 1000;
     chatHistory = isRecent && Array.isArray(savedChat.items) ? savedChat.items : [];
-    const obsoleteError = /Gemini no pudo responder|vista demostrativa|conexión con Gemini aún no está activa/i;
+    const obsoleteError = /Gemini no pudo responder|vista demostrativa|conexión con Gemini aún no está activa|hay muchas consultas en este momento/i;
     chatHistory = chatHistory.reduce((clean, message) => {
       if (message.type === "bot" && obsoleteError.test(message.text || "")) {
         if (clean.at(-1)?.type === "user") clean.pop();
@@ -164,7 +164,7 @@ if (medicalChat) {
   medicalChat.querySelectorAll("[data-chat]").forEach((button) => button.addEventListener("click", () => {
     const key = button.dataset.chat;
     addMessage(button.textContent, "user");
-    askGemini(answers[key]);
+    window.setTimeout(() => addMessage(answers[key], "bot"), 250);
   }));
   chatForm.addEventListener("submit", (event) => {
     event.preventDefault();
