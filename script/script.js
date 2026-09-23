@@ -75,11 +75,17 @@ if (medicalChat) {
   };
   let chatHistory = [];
   try {
-    chatHistory = JSON.parse(sessionStorage.getItem(chatStorageKey) || "[]");
-    if (!Array.isArray(chatHistory)) chatHistory = [];
+    const savedChat = JSON.parse(localStorage.getItem(chatStorageKey) || "null");
+    const isRecent = savedChat && Date.now() - savedChat.savedAt < 6 * 60 * 60 * 1000;
+    chatHistory = isRecent && Array.isArray(savedChat.items) ? savedChat.items : [];
+    if (!isRecent) localStorage.removeItem(chatStorageKey);
   } catch {
     chatHistory = [];
   }
+  const saveChatHistory = () => localStorage.setItem(
+    chatStorageKey,
+    JSON.stringify({ items: chatHistory, savedAt: Date.now() }),
+  );
   const addMessage = (text, type, persist = true) => {
     const item = document.createElement("div");
     item.className = `chat-message ${type}`;
@@ -93,7 +99,7 @@ if (medicalChat) {
     if (persist) {
       chatHistory.push({ text: item.textContent, type });
       chatHistory = chatHistory.slice(-12);
-      sessionStorage.setItem(chatStorageKey, JSON.stringify(chatHistory));
+      saveChatHistory();
     }
   };
   chatHistory.forEach((message) => addMessage(message.text, message.type, false));
