@@ -77,19 +77,30 @@ if (medicalChat) {
     messages.appendChild(item);
     messages.scrollTop = messages.scrollHeight;
   };
-  const respond = (text) => {
-    const value = text.toLowerCase();
-    if (/cita|reserva|turno/.test(value)) return answers.cita;
-    if (/hora|horario|atienden/.test(value)) return answers.horario;
-    if (/nutri|peso|aliment/.test(value)) return "Para alimentación, control de peso o metabolismo, revisa Nutrición clínica con la Dra. Ana Torres.";
-    if (/lesión|lesion|rodilla|deporte|dolor muscular/.test(value)) return "Para lesiones o molestias relacionadas con actividad física, puedes revisar Medicina deportiva.";
-    if (/urgencia|emergencia|pecho|respirar|desmayo/.test(value)) return "Si tienes síntomas intensos o una posible emergencia, busca atención de urgencias de inmediato. Este chat no atiende emergencias.";
-    return "Gracias por contármelo. Para orientarte correctamente, revisa nuestros especialistas o solicita contacto con recepción.";
+  const askGemini = async (text) => {
+    const waiting = document.createElement("div");
+    waiting.className = "chat-message bot chat-waiting";
+    waiting.textContent = "Pensando…";
+    messages.appendChild(waiting);
+    messages.scrollTop = messages.scrollHeight;
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+      const data = await response.json();
+      waiting.remove();
+      addMessage(data.answer || data.error || "No pude responder en este momento.", "bot");
+    } catch {
+      waiting.remove();
+      addMessage("La conexión con Gemini aún no está activa en este servidor.", "bot");
+    }
   };
   medicalChat.querySelectorAll("[data-chat]").forEach((button) => button.addEventListener("click", () => {
     const key = button.dataset.chat;
     addMessage(button.textContent, "user");
-    window.setTimeout(() => addMessage(answers[key], "bot"), 350);
+    askGemini(answers[key]);
   }));
   chatForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -97,7 +108,7 @@ if (medicalChat) {
     if (!text) return;
     addMessage(text, "user");
     chatInput.value = "";
-    window.setTimeout(() => addMessage(respond(text), "bot"), 450);
+    askGemini(text);
   });
 }
 
