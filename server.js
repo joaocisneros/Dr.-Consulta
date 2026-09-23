@@ -12,7 +12,7 @@ if (fs.existsSync(envFile)) {
 }
 
 const port = Number(process.env.PORT || 3000);
-const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 const mime = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".png":"image/png", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".webp":"image/webp" };
 const limits = new Map();
 
@@ -42,10 +42,13 @@ async function chat(req, res) {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method:"POST",
       headers:{ "Content-Type":"application/json", "x-goog-api-key":process.env.GEMINI_API_KEY },
-      body:JSON.stringify({ system_instruction:{ parts:[{ text:system }] }, contents:[{ role:"user", parts:[{ text:message }] }], generationConfig:{ temperature:0.3, maxOutputTokens:220 } })
+      body:JSON.stringify({ system_instruction:{ parts:[{ text:system }] }, contents:[{ role:"user", parts:[{ text:message }] }], generationConfig:{ maxOutputTokens:600, thinkingConfig:{ thinkingLevel:"minimal" } } })
     });
     const data = await response.json();
-    if (!response.ok) return json(res, 502, { error:"Gemini rechazó la solicitud. Revisa la clave, el modelo y la cuota." });
+    if (!response.ok) {
+      console.error("Gemini API:", response.status, data.error?.message || "Error desconocido");
+      return json(res, 502, { error:"Gemini rechazó la solicitud. Revisa la clave, el modelo y la cuota." });
+    }
     const answer = data.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("").trim();
     if (!answer) return json(res, 502, { error:"Gemini no devolvió una respuesta." });
     return json(res, 200, { answer });
