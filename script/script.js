@@ -69,11 +69,6 @@ if (medicalChat) {
   launcher.addEventListener("click", () => toggleChat(!medicalChat.classList.contains("open")));
   close.addEventListener("click", () => toggleChat(false));
 
-  const answers = {
-    especialidad: "Cuéntame brevemente qué tipo de atención buscas. Puedo orientarte entre medicina familiar, deportiva o nutrición clínica.",
-    cita: "Puedes reservar desde el botón Agendar cita. Si prefieres atención personal, también podemos comunicarte con recepción.",
-    horario: "Atendemos de lunes a viernes de 8:00 a.m. a 7:00 p.m. La disponibilidad depende de cada especialista.",
-  };
   let chatHistory = [];
   try {
     const savedChat = JSON.parse(localStorage.getItem(chatStorageKey) || "null");
@@ -146,7 +141,13 @@ if (medicalChat) {
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({
+          message: text,
+          history: chatHistory.slice(0, -1).slice(-8).map((item) => ({
+            role: item.type === "user" ? "user" : "model",
+            text: item.text,
+          })),
+        }),
       });
       const data = await response.json();
       waiting.remove();
@@ -161,11 +162,6 @@ if (medicalChat) {
       chatInput.focus();
     }
   };
-  medicalChat.querySelectorAll("[data-chat]").forEach((button) => button.addEventListener("click", () => {
-    const key = button.dataset.chat;
-    addMessage(button.textContent, "user");
-    window.setTimeout(() => addMessage(answers[key], "bot"), 250);
-  }));
   chatForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const text = chatInput.value.trim();

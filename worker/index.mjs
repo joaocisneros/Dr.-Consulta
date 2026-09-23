@@ -22,8 +22,40 @@ function json(data, status, origin) {
   });
 }
 
+function htmlToText(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function getSiteContext(context) {
+  const cache = caches.default;
+  const cacheKey = new Request("https://dr-consulta.internal/site-context");
+  const cached = await cache.match(cacheKey);
+  if (cached) return cached.text();
+  const urls = [
+    "https://joaocisneros.github.io/Dr.-Consulta/",
+    "https://joaocisneros.github.io/Dr.-Consulta/nosotros.html",
+  ];
+  const pages = await Promise.all(urls.map(async (url) => {
+    const response = await fetch(url, { cf: { cacheTtl: 300, cacheEverything: true } });
+    return response.ok ? htmlToText(await response.text()) : "";
+  }));
+  const siteText = pages.join("\n").slice(0, 14000);
+  const cacheResponse = new Response(siteText, { headers: { "Cache-Control": "public, max-age=300" } });
+  context.waitUntil(cache.put(cacheKey, cacheResponse));
+  return siteText;
+}
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, context) {
     const origin = request.headers.get("Origin") || "";
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin) });
@@ -37,17 +69,27 @@ export default {
     if (!message || message.length > 500) return json({ error: "Escribe una consulta breve." }, 400, origin);
     if (!env.GEMINI_API_KEY) return json({ error: "Gemini no está configurado." }, 503, origin);
 
-    const system = `Eres Dr. Bot, asistente virtual de Dr. Consulta. Responde en español, de forma amable, profesional y muy breve: máximo 55 palabras. Usa frases cortas y texto plano, sin Markdown, asteriscos, títulos ni listas largas. La clínica atiende de lunes a viernes, de 8:00 a.m. a 7:00 p.m. Solo brindas orientación general y ayudas a elegir entre medicina familiar, medicina deportiva y nutrición clínica. No diagnostiques, no prescribas medicamentos y no inventes datos. Si hay dolor de pecho, dificultad para respirar, desmayo, sangrado intenso, riesgo de autolesión u otra posible emergencia, indica buscar servicios de emergencia inmediatamente. Recuerda que una respuesta no reemplaza una consulta médica.`;
+    const history = Array.isArray(body.history) ? body.history.slice(-8).flatMap((item) => {
+      const role = item?.role === "model" ? "model" : "user";
+      const text = String(item?.text || "").trim().slice(0, 500);
+      return text ? [{ role, parts: [{ text }] }] : [];
+    }) : [];
+    const siteContext = await getSiteContext(context).catch(() => "");
+
+    const system = `Eres Dr. Bot, asistente virtual de Dr. Consulta. Conversa naturalmente en español y responde de forma amable, profesional y breve: máximo 80 palabras. Usa texto plano, sin Markdown ni asteriscos. Responde preguntas sobre la clínica, sus médicos, especialidades, horarios, citas y contenido usando únicamente la información del sitio incluida al final. Si el dato no aparece, dilo claramente y ofrece contacto con el equipo. No diagnostiques ni prescribas medicamentos. Si detectas una posible emergencia, indica buscar atención de urgencias inmediatamente. Una respuesta no reemplaza una consulta médica.\n\nINFORMACIÓN ACTUAL DEL SITIO:\n${siteContext}`;
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL || "gemini-3.6-flash"}:generateContent`, {
+      const requestBody = JSON.stringify({
+        system_instruction: { parts: [{ text: system }] },
+        contents: [...history, { role: "user", parts: [{ text: message }] }],
+        generationConfig: { maxOutputTokens: 600, thinkingConfig: { thinkingLevel: "minimal" } },
+      });
+      const callGemini = (model) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: system }] },
-          contents: [{ role: "user", parts: [{ text: message }] }],
-          generationConfig: { maxOutputTokens: 600, thinkingConfig: { thinkingLevel: "minimal" } },
-        }),
+        body: requestBody,
       });
+      let response = await callGemini(env.GEMINI_MODEL || "gemini-3.6-flash");
+      if (response.status === 429) response = await callGemini("gemini-3.5-flash-lite");
       const data = await response.json();
       if (response.status === 429) return json({ error: "Hay muchas consultas en este momento. Espera 30 segundos e inténtalo nuevamente." }, 429, origin);
       if (!response.ok) return json({ error: "El asistente no pudo responder en este momento." }, 502, origin);
