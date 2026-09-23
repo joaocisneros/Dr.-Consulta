@@ -55,6 +55,7 @@ if (medicalChat) {
   const launcher = medicalChat.querySelector(".chat-launcher");
   const panel = medicalChat.querySelector(".chat-panel");
   const close = medicalChat.querySelector(".chat-close");
+  const reset = medicalChat.querySelector(".chat-reset");
   const messages = medicalChat.querySelector(".chat-messages");
   const chatForm = medicalChat.querySelector(".chat-form");
   const chatInput = chatForm.querySelector("input");
@@ -78,6 +79,15 @@ if (medicalChat) {
     const savedChat = JSON.parse(localStorage.getItem(chatStorageKey) || "null");
     const isRecent = savedChat && Date.now() - savedChat.savedAt < 6 * 60 * 60 * 1000;
     chatHistory = isRecent && Array.isArray(savedChat.items) ? savedChat.items : [];
+    const obsoleteError = /Gemini no pudo responder|vista demostrativa|conexión con Gemini aún no está activa/i;
+    chatHistory = chatHistory.reduce((clean, message) => {
+      if (message.type === "bot" && obsoleteError.test(message.text || "")) {
+        if (clean.at(-1)?.type === "user") clean.pop();
+        return clean;
+      }
+      clean.push(message);
+      return clean;
+    }, []);
     if (!isRecent) localStorage.removeItem(chatStorageKey);
   } catch {
     chatHistory = [];
@@ -86,6 +96,7 @@ if (medicalChat) {
     chatStorageKey,
     JSON.stringify({ items: chatHistory, savedAt: Date.now() }),
   );
+  saveChatHistory();
   if (chatHistory.length) {
     messages.querySelector(".chat-message.bot")?.remove();
     messages.querySelector(".chat-options")?.remove();
@@ -111,6 +122,11 @@ if (medicalChat) {
     toggleChat(true);
     requestAnimationFrame(() => { messages.scrollTop = messages.scrollHeight; });
   }
+  reset?.addEventListener("click", () => {
+    localStorage.removeItem(chatStorageKey);
+    sessionStorage.setItem(chatOpenKey, "true");
+    location.reload();
+  });
   let chatBusy = false;
   const askGemini = async (text) => {
     if (chatBusy) return;
