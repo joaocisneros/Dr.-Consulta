@@ -1526,3 +1526,20 @@ footer {
   color: var(--teal2);
   text-decoration: underline;
 }
+/* Foto completa sin recortes: la imagen entera arriba y una copia desenfocada de fondo. */
+.topic-bg.fit-full {
+  object-fit: contain;
+  object-position: top center;
+}
+.topic-bg.blur-bg {
+  filter: blur(14px) brightness(0.55);
+  transform: scale(1.2);
+}
+.topic-card:hover .topic-bg.fit-full {
+  transform: none;
+  filter: none;
+}
+.topic-card:hover .topic-bg.blur-bg {
+  transform: scale(1.2);
+  filter: blur(14px) brightness(0.55);
+}
