@@ -11,16 +11,18 @@
 window.DR_MATERIALES = {
   serums: [
     {
-      titulo: "Normativa y proceso del SERUMS",
+      titulo: "Salud pública",
       archivos: [
         // Muestra para ver cómo funciona; reemplazar por el material real.
         { tipo: "pdf", nombre: "Material de ejemplo (PDF)", ruta: "materiales/serums/ejemplo-modulo-1.pdf" },
         { tipo: "ppt", nombre: "Presentación de ejemplo (PPT)", ruta: "materiales/serums/ejemplo-modulo-1.pptx" },
       ],
     },
-    { titulo: "Atención primaria de salud", archivos: [] },
-    { titulo: "Salud materno-infantil", archivos: [] },
-    { titulo: "Enfermedades transmisibles y vigilancia", archivos: [] },
+    { titulo: "Ética e interculturalidad", archivos: [] },
+    { titulo: "Cuidado integral de salud", archivos: [] },
+    { titulo: "Investigación", archivos: [] },
+    { titulo: "Gestión en Salud", archivos: [] },
+    { titulo: "Resolución de simulacros", archivos: [] },
   ],
   emergencia: [],
   residentado: [],
