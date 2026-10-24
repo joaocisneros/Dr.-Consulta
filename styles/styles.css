@@ -1777,7 +1777,14 @@ footer {
   text-transform: uppercase;
   vertical-align: middle;
 }
-/* Logo más visible sobre el fondo oscuro: más brillo y un leve resplandor turquesa. */
+/* Logo más grande para que se vea mejor (mismo color). */
 .brand img {
-  filter: brightness(1.9) saturate(1.3) drop-shadow(0 0 6px rgba(75, 215, 203, 0.45));
+  width: 84px;
+  height: 84px;
+}
+@media (max-width: 620px) {
+  .brand img {
+    width: 64px;
+    height: 64px;
+  }
 }
