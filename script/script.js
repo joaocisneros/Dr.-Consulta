@@ -190,18 +190,47 @@ if (medicalChat) {
     messages.querySelector(".chat-message.bot")?.remove();
     messages.querySelector(".chat-options")?.remove();
   }
+  // Detecta cuando el paciente pide ir a WhatsApp ("llévame al wasap", "pásame al wsp", "quiero hablar por WhatsApp").
+  // Una pregunta como "¿tienen WhatsApp?" la responde la IA.
+  const whatsappWord = /whats?\s?app|g?u?w?asap|wats|wsp|wpp|whats/i;
+  const goVerb = /ll[eé]v|p[aá]s|abr|ir\b|vamos|conect|comunic|habl|escrib|contact|deriv|redirig|m[aá]nd|quiero|deseo|prefiero/i;
+  const wantsWhatsApp = (text) =>
+    whatsappWord.test(text) && !/^\s*¿|\?\s*$/.test(text) && (goVerb.test(text) || text.trim().split(/\s+/).length <= 3);
+  // Resume la consulta previa del paciente para que el equipo tenga contexto al abrir WhatsApp.
+  const whatsappGreeting = () => {
+    const previous = chatHistory.filter((m) => m.type === "user" && !wantsWhatsApp(m.text)).slice(-2).map((m) => m.text);
+    return previous.length
+      ? `Hola, vengo del chat de la página de Dr. Consulta. Mi consulta: ${previous.join(" / ")}`
+      : "Hola, vengo del chat de la página de Dr. Consulta y deseo información.";
+  };
+  // En las respuestas del bot, el número de WhatsApp es un enlace: al hacer clic se abre el chat de la clínica.
+  const whatsappNumberPattern = /^(?:\+?51\s?)?910\s?038\s?666$/;
   const addMessage = (text, type, persist = true) => {
     const item = document.createElement("div");
     item.className = `chat-message ${type}`;
-    item.textContent = String(text)
+    const clean = String(text)
       .replace(/\*\*/g, "")
       .replace(/^#{1,6}\s*/gm, "")
       .replace(/^\s*[-•]\s+/gm, "• ")
       .trim();
+    if (type === "bot") {
+      clean.split(/((?:\+?51\s?)?910\s?038\s?666)/).forEach((part) => {
+        if (!whatsappNumberPattern.test(part)) return item.append(part);
+        item.append(Object.assign(document.createElement("a"), {
+          className: "chat-wa-number",
+          href: whatsappUrl(whatsappGreeting()),
+          target: "_blank",
+          rel: "noopener",
+          textContent: part,
+        }));
+      });
+    } else {
+      item.textContent = clean;
+    }
     messages.appendChild(item);
     messages.scrollTop = messages.scrollHeight;
     if (persist) {
-      chatHistory.push({ text: item.textContent, type });
+      chatHistory.push({ text: clean, type });
       chatHistory = chatHistory.slice(-12);
       saveChatHistory();
     }
@@ -258,10 +287,10 @@ if (medicalChat) {
       const data = await response.json();
       waiting.remove();
       if (response.ok && data.answer) addMessage(data.answer, "bot");
-      else addMessage(data.error || "No pude responder en este momento.", "bot", false);
+      else addMessage(data.error || "No pude responder en este momento. Puede escribirnos por WhatsApp al +51 910 038 666.", "bot", false);
     } catch {
       waiting.remove();
-      addMessage("El asistente no está disponible temporalmente. Inténtalo nuevamente en unos minutos.", "bot", false);
+      addMessage("El asistente no está disponible en este momento. Puede escribirnos por WhatsApp al +51 910 038 666.", "bot", false);
     } finally {
       chatBusy = false;
       chatInput.disabled = false;
@@ -273,6 +302,13 @@ if (medicalChat) {
     event.preventDefault();
     const text = chatInput.value.trim();
     if (!text) return;
+    if (wantsWhatsApp(text)) {
+      // Respuesta fija para garantizar que el número siempre aparezca (y sea clicable).
+      addMessage(text, "user");
+      chatInput.value = "";
+      window.setTimeout(() => addMessage("¡Con gusto! Escríbanos por WhatsApp al +51 910 038 666 y nuestro equipo le atenderá. Haga clic en el número para abrir el chat.", "bot"), 250);
+      return;
+    }
     addMessage(text, "user");
     chatInput.value = "";
     askGemini(text);

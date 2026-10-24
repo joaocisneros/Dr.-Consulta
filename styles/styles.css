@@ -1543,3 +1543,10 @@ footer {
   transform: scale(1.2);
   filter: blur(14px) brightness(0.55);
 }
+/* Número de WhatsApp clicable dentro de las respuestas del chat. */
+.chat-wa-number {
+  color: #25d366;
+  font-weight: 700;
+  text-decoration: underline;
+  white-space: nowrap;
+}
