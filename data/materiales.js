@@ -15,6 +15,7 @@ window.DR_MATERIALES = {
       archivos: [
         // Muestra para ver cómo funciona; reemplazar por el material real.
         { tipo: "pdf", nombre: "Material de ejemplo (PDF)", ruta: "materiales/serums/ejemplo-tema-1.pdf" },
+        { tipo: "ppt", nombre: "Presentación de ejemplo (PPT)", ruta: "materiales/serums/ejemplo-tema-1.pptx" },
       ],
     },
     { titulo: "Atención primaria de salud", archivos: [] },
