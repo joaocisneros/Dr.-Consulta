@@ -108,10 +108,34 @@ if (form)
 const bookingSubmit = document.querySelector(".booking-submit");
 if (bookingSubmit) {
   const bookingBar = bookingSubmit.closest(".booking-bar");
+  const specialtySelect = bookingBar.querySelector("[name=specialty]");
+  const doctorSelect = bookingBar.querySelector("[name=doctor]");
+  const doctorSpecialty = {
+    "Dr. Carlos Mendoza": "Medicina deportiva",
+    "Dra. Ana Torres": "Nutrición clínica",
+    "Dr. Luis Ramírez": "Medicina familiar",
+  };
+  // Al elegir un doctor se completa su especialidad; al elegir especialidad solo quedan sus doctores.
+  doctorSelect.addEventListener("change", () => {
+    if (doctorSelect.selectedIndex > 0) specialtySelect.value = doctorSpecialty[doctorSelect.value];
+    specialtySelect.setCustomValidity("");
+  });
+  specialtySelect.addEventListener("change", () => {
+    specialtySelect.setCustomValidity("");
+    [...doctorSelect.options].slice(1).forEach((option) => {
+      option.hidden = specialtySelect.selectedIndex > 0 && doctorSpecialty[option.value] !== specialtySelect.value;
+    });
+    if (doctorSelect.selectedOptions[0]?.hidden) doctorSelect.selectedIndex = 0;
+  });
   bookingSubmit.addEventListener("click", () => {
     const [specialty, doctor, mode] = [...bookingBar.querySelectorAll("select")].map(
       (select) => (select.selectedIndex > 0 || select.name === "mode" ? select.value : ""),
     );
+    if (!specialty && !doctor) {
+      specialtySelect.setCustomValidity("Seleccione una especialidad o un profesional.");
+      specialtySelect.reportValidity();
+      return;
+    }
     const request = [
       "Quisiera reservar una cita",
       specialty && `de ${specialty}`,
