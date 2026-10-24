@@ -1519,9 +1519,6 @@ footer {
 .edu-card:has(.topic-bg)::after {
   background: linear-gradient(180deg, rgba(7, 10, 16, 0.03) 18%, rgba(7, 10, 16, 0.42) 48%, rgba(7, 10, 16, 0.96) 90%);
 }
-.topic-bg[src*="formacion-temas-medicos"] {
-  object-position: 15% center;
-}
 .form-status a {
   color: var(--teal2);
   text-decoration: underline;
