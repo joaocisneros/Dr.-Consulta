@@ -1,5 +1,7 @@
 const allowedOrigins = new Set([
   "https://joaocisneros.github.io",
+  "https://dr-consulta-khm5.vercel.app",
+  "https://drconsultas.vercel.app",
   "http://localhost:4317",
   "http://127.0.0.1:4317",
   "http://localhost:5500",

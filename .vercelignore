@@ -1,0 +1,9 @@
+# Vercel publica solo la página estática.
+# server.js es el servidor de pruebas local: si se sube, Vercel lo ejecuta y la página da 404.
+server.js
+worker/
+test/
+package.json
+package-lock.json
+wrangler.jsonc
+.env.example
