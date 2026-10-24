@@ -1522,3 +1522,7 @@ footer {
 .topic-bg[src*="formacion-temas-medicos"] {
   object-position: 15% center;
 }
+.form-status a {
+  color: var(--teal2);
+  text-decoration: underline;
+}

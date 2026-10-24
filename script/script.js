@@ -47,24 +47,53 @@ const observer = new IntersectionObserver(
 );
 document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
 
+// El formulario llega al correo de la clínica mediante FormSubmit (sin servidor propio).
+const contactEmail = "levyfk01@gmail.com";
 const form = document.querySelector("#contactForm");
 if (form)
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const data = new FormData(form);
     const field = (key) => String(data.get(key) || "").trim();
+    if (field("_honey")) return;
     const name = field("name");
-    openWhatsApp(
-      [
-        `Hola, soy ${name}. Deseo orientación de Dr. Consulta.`,
-        `Teléfono: ${field("phone")}`,
-        `Correo: ${field("email")}`,
-        field("message") && `Mensaje: ${field("message")}`,
-      ].filter(Boolean).join("\n"),
-    );
-    form.querySelector(".form-status").textContent =
-      `Gracias, ${name.split(" ")[0]}. Completa el envío en WhatsApp y te responderemos pronto.`;
-    form.reset();
+    const status = form.querySelector(".form-status");
+    const button = form.querySelector("button[type=submit]");
+    button.disabled = true;
+    status.textContent = "Enviando…";
+    try {
+      const response = await fetch(`https://formsubmit.co/ajax/${contactEmail}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          Nombre: name,
+          Teléfono: field("phone"),
+          Correo: field("email"),
+          Mensaje: field("message") || "(sin mensaje)",
+          _subject: `Nueva solicitud de ${name} - Dr. Consulta`,
+          _replyto: field("email"),
+          _template: "table",
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || String(result.success) !== "true") throw new Error(result.message);
+      status.textContent = `Gracias, ${name.split(" ")[0]}. Recibimos su solicitud y le responderemos pronto.`;
+      form.reset();
+    } catch {
+      status.innerHTML = "";
+      status.append(
+        "No pudimos enviar el formulario. Escríbanos por ",
+        Object.assign(document.createElement("a"), {
+          href: whatsappUrl(`Hola, soy ${name}. Deseo orientación de Dr. Consulta.`),
+          target: "_blank",
+          rel: "noopener",
+          textContent: "WhatsApp",
+        }),
+        ".",
+      );
+    } finally {
+      button.disabled = false;
+    }
   });
 
 const bookingSubmit = document.querySelector(".booking-submit");
