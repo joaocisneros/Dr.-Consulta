@@ -10,7 +10,13 @@
 // Los archivos de GitHub Pages son públicos: cualquiera con el enlace puede descargarlos.
 window.DR_MATERIALES = {
   serums: [
-    { titulo: "Normativa y proceso del SERUMS", archivos: [] },
+    {
+      titulo: "Normativa y proceso del SERUMS",
+      archivos: [
+        // Muestra para ver cómo funciona; reemplazar por el material real.
+        { tipo: "pdf", nombre: "Material de ejemplo (PDF)", ruta: "materiales/serums/ejemplo-tema-1.pdf" },
+      ],
+    },
     { titulo: "Atención primaria de salud", archivos: [] },
     { titulo: "Salud materno-infantil", archivos: [] },
     { titulo: "Enfermedades transmisibles y vigilancia", archivos: [] },
