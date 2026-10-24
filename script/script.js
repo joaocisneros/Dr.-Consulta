@@ -134,7 +134,6 @@ const chatMarkup = `
       </header>
       <div class="chat-messages" aria-live="polite">
         <div class="chat-message bot">Hola, soy Dr. Bot, asistente de Dr. Consulta. ¿En qué puedo ayudarle?</div>
-        <div class="chat-options"><button type="button" data-chat="especialidad">Elegir especialista</button><button type="button" data-chat="cita">Reservar una cita</button><button type="button" data-chat="horario">Ver horarios</button></div>
       </div>
       <form class="chat-form"><input type="text" maxlength="180" placeholder="Escribe tu consulta..." aria-label="Escribe tu consulta" /><button type="submit" aria-label="Enviar mensaje">➜</button></form>
       <small class="chat-disclaimer">Orientación general. No reemplaza una consulta médica.</small>
@@ -164,12 +163,6 @@ if (medicalChat) {
   launcher.addEventListener("click", () => toggleChat(!medicalChat.classList.contains("open")));
   close.addEventListener("click", () => toggleChat(false));
 
-  const quickAnswers = {
-    especialidad: "Con gusto le orientamos. Cuéntenos brevemente qué molestia tiene o qué tipo de atención busca, y le indicaremos la especialidad adecuada.",
-    cita: "Puede reservar por WhatsApp al +51 910 038 666 o con el botón Agendar cita. Indíquenos la especialidad y el horario que prefiere, y el equipo le confirmará la cita.",
-    horario: "Atendemos de lunes a sábado, de 8:00 a.m. a 7:00 p.m., en modalidad presencial y virtual. La disponibilidad de cada profesional se confirma por WhatsApp.",
-  };
-
   // Los errores se muestran pero no se guardan, para que no contaminen el historial.
   let chatHistory = [];
   try {
@@ -188,7 +181,6 @@ if (medicalChat) {
   };
   if (chatHistory.length) {
     messages.querySelector(".chat-message.bot")?.remove();
-    messages.querySelector(".chat-options")?.remove();
   }
   // Detecta cuando el paciente pide ir a WhatsApp ("llévame al wasap", "pásame al wsp", "quiero hablar por WhatsApp").
   // Una pregunta como "¿tienen WhatsApp?" la responde la IA.
@@ -246,16 +238,11 @@ if (medicalChat) {
     location.reload();
   });
   let chatBusy = false;
-  medicalChat.querySelectorAll("[data-chat]").forEach((button) => button.addEventListener("click", () => {
-    const key = button.dataset.chat;
-    addMessage(button.textContent, "user");
-    window.setTimeout(() => addMessage(quickAnswers[key], "bot"), 250);
-  }));
   const askGemini = async (text) => {
     if (chatBusy) return;
     chatBusy = true;
     chatInput.disabled = true;
-    medicalChat.querySelectorAll("[data-chat], .chat-form button").forEach((button) => { button.disabled = true; });
+    medicalChat.querySelectorAll(".chat-form button").forEach((button) => { button.disabled = true; });
     const waiting = document.createElement("div");
     waiting.className = "chat-message bot chat-waiting";
     waiting.textContent = "Pensando…";
@@ -286,7 +273,9 @@ if (medicalChat) {
       });
       const data = await response.json();
       waiting.remove();
-      if (response.ok && data.answer) addMessage(data.answer, "bot");
+      // Si el paciente pidió WhatsApp y la IA no dio el número, se añade para que siempre pueda hacer clic.
+      const needsNumber = wantsWhatsApp(text) && !/910\s?038\s?666/.test(data.answer || "");
+      if (response.ok && data.answer) addMessage(needsNumber ? `${data.answer} Puede escribirnos por WhatsApp al +51 910 038 666.` : data.answer, "bot");
       else addMessage(data.error || "No pude responder en este momento. Puede escribirnos por WhatsApp al +51 910 038 666.", "bot", false);
     } catch {
       waiting.remove();
@@ -294,7 +283,7 @@ if (medicalChat) {
     } finally {
       chatBusy = false;
       chatInput.disabled = false;
-      medicalChat.querySelectorAll("[data-chat], .chat-form button").forEach((button) => { button.disabled = false; });
+      medicalChat.querySelectorAll(".chat-form button").forEach((button) => { button.disabled = false; });
       chatInput.focus();
     }
   };
@@ -302,13 +291,6 @@ if (medicalChat) {
     event.preventDefault();
     const text = chatInput.value.trim();
     if (!text) return;
-    if (wantsWhatsApp(text)) {
-      // Respuesta fija para garantizar que el número siempre aparezca (y sea clicable).
-      addMessage(text, "user");
-      chatInput.value = "";
-      window.setTimeout(() => addMessage("¡Con gusto! Escríbanos por WhatsApp al +51 910 038 666 y nuestro equipo le atenderá. Haga clic en el número para abrir el chat.", "bot"), 250);
-      return;
-    }
     addMessage(text, "user");
     chatInput.value = "";
     askGemini(text);
