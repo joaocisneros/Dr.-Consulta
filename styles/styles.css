@@ -1683,7 +1683,7 @@ footer {
   font-weight: 700;
 }
 .edu-materials-list li > span::before {
-  content: "Tema " counter(tema) ": ";
+  content: attr(data-unit) " " counter(tema) ": ";
   color: var(--teal2);
 }
 .edu-material-files {

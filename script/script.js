@@ -464,6 +464,7 @@ if (profile) {
 const educationTopics = {
   serums: {
     kicker: "Preparación",
+    unit: ["Módulo", "Módulos"],
     title: "SERUMS",
     image: "img/formacion-serums.webp?v=3",
     text: "Acompañamiento para profesionales de la salud que se preparan para el Servicio Rural y Urbano Marginal de Salud y para atender en comunidades de la costa, la sierra y la selva.",
@@ -472,6 +473,7 @@ const educationTopics = {
   },
   emergencia: {
     kicker: "Urgencias",
+    unit: ["Módulo", "Módulos"],
     title: "Emergencia",
     image: "img/formacion-emergencia.webp?v=2",
     text: "Formación en la atención inicial de pacientes en situaciones de urgencia y emergencia.",
@@ -480,6 +482,7 @@ const educationTopics = {
   },
   residentado: {
     kicker: "Examen",
+    unit: ["Módulo", "Módulos"],
     title: "Residentado",
     image: "img/formacion-residentado.webp?v=2",
     text: "Preparación para el examen de Residentado Médico, con un repaso ordenado de las áreas más evaluadas.",
@@ -488,6 +491,7 @@ const educationTopics = {
   },
   temas: {
     kicker: "Actualización",
+    unit: ["Clase", "Clases"],
     title: "Temas médicos",
     image: "img/formacion-temas-medicos.webp?v=2",
     text: "Contenido de actualización en ciencias básicas y clínicas para estudiantes y profesionales de la salud.",
@@ -524,7 +528,7 @@ if (firstEducationCard) {
           </div>
         </div>
         <section class="edu-materials">
-          <h3>Temas y materiales</h3>
+          <h3 class="edu-materials-title"></h3>
           <ol class="edu-materials-list"></ol>
         </section>
       </div>
@@ -563,8 +567,11 @@ if (firstEducationCard) {
   viewer.querySelector(".doc-viewer-close").addEventListener("click", closeViewer);
   viewer.addEventListener("close", () => { viewerFrame.src = "about:blank"; });
 
+  // Cada programa nombra sus partes: "Módulo" en SERUMS, Residentado y Emergencia; "Clase" en los cursos.
   const renderMaterials = (key) => {
     const subjects = window.DR_MATERIALES?.[key] || [];
+    const [unit, units] = educationTopics[key].unit || ["Módulo", "Módulos"];
+    modal.querySelector(".edu-materials-title").textContent = `${units} y materiales`;
     modal.querySelector(".edu-materials").hidden = !subjects.length;
     modal.classList.toggle("with-materials", subjects.length > 0);
     modal.querySelector(".edu-materials-list").replaceChildren(...subjects.map((subject) => {
@@ -582,7 +589,9 @@ if (firstEducationCard) {
           onclick: () => openMaterial(file),
         }));
       });
-      item.append(Object.assign(document.createElement("span"), { textContent: subject.titulo }), files);
+      const title = Object.assign(document.createElement("span"), { textContent: subject.titulo });
+      title.dataset.unit = unit;
+      item.append(title, files);
       return item;
     }));
   };
