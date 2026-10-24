@@ -13,8 +13,8 @@ if (fs.existsSync(envFile)) {
 }
 
 const port = Number(process.env.PORT || 4317);
-const mime = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".json":"application/json; charset=utf-8", ".png":"image/png", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".webp":"image/webp", ".svg":"image/svg+xml", ".ico":"image/x-icon" };
-const publicFolders = new Set(["img", "data", "script", "styles"]);
+const mime = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".json":"application/json; charset=utf-8", ".png":"image/png", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".webp":"image/webp", ".svg":"image/svg+xml", ".ico":"image/x-icon", ".pdf":"application/pdf", ".ppt":"application/vnd.ms-powerpoint", ".pptx":"application/vnd.openxmlformats-officedocument.presentationml.presentation" };
+const publicFolders = new Set(["img", "data", "script", "styles", "materiales"]);
 const limits = new Map();
 // El chat local usa el mismo código que el Worker publicado en Cloudflare.
 const worker = import(pathToFileURL(path.join(root, "worker", "index.mjs")).href).then((module) => module.default);

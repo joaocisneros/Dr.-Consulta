@@ -1636,3 +1636,126 @@ footer {
     justify-content: center;
   }
 }
+/* Temas y materiales dentro del modal de Formación médica. */
+.edu-materials {
+  padding: 26px;
+  border-top: 1px solid var(--line);
+  background: #0f1724;
+}
+.edu-materials[hidden] {
+  display: none;
+}
+/* Con materiales: dos columnas (detalle a la izquierda, temas a la derecha). */
+.edu-modal.with-materials {
+  width: min(1040px, calc(100vw - 32px));
+}
+@media (min-width: 821px) {
+  .edu-modal.with-materials .edu-modal-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+  }
+  .edu-modal.with-materials .edu-materials {
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+}
+.edu-materials h3 {
+  margin: 0 0 12px;
+  font: 700 17px "Manrope";
+}
+.edu-materials-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: tema;
+}
+.edu-materials-list li {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #0d1420;
+  counter-increment: tema;
+}
+.edu-materials-list li > span {
+  display: block;
+  font-weight: 700;
+}
+.edu-materials-list li > span::before {
+  content: "Tema " counter(tema) ": ";
+  color: var(--teal2);
+}
+.edu-material-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.edu-material-files small {
+  color: #8d99a8;
+  font-style: italic;
+}
+.edu-material-file {
+  padding: 7px 12px;
+  border: 1px solid var(--teal);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--teal2);
+  font: 600 12px "DM Sans";
+  cursor: pointer;
+}
+.edu-material-file:hover {
+  background: rgba(29, 169, 159, 0.15);
+}
+.doc-viewer {
+  width: min(1100px, calc(100vw - 24px));
+  height: calc(100vh - 24px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  color: #fff;
+  overflow: hidden;
+}
+.doc-viewer[open] {
+  display: flex;
+  flex-direction: column;
+}
+.doc-viewer::backdrop {
+  background: rgba(5, 8, 14, 0.85);
+}
+.doc-viewer-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.doc-viewer-header b {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.doc-viewer-download {
+  color: var(--teal2);
+  font-weight: 700;
+  font-size: 13px;
+}
+.doc-viewer-close {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+.doc-viewer-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: #fff;
+}

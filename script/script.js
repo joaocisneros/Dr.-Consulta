@@ -509,20 +509,83 @@ if (firstEducationCard) {
   document.body.insertAdjacentHTML("beforeend", `
     <dialog class="edu-modal" aria-labelledby="eduModalTitle">
       <button class="edu-modal-close" type="button" aria-label="Cerrar">×</button>
-      <img class="edu-modal-image" alt="" />
-      <div class="edu-modal-body">
-        <span class="kicker edu-modal-kicker"></span><b class="soon-badge edu-modal-soon">Muy pronto</b>
-        <h2 id="eduModalTitle"></h2>
-        <p class="edu-modal-text"></p>
-        <ul class="edu-modal-points"></ul>
-        <div class="edu-modal-actions">
-          <a class="btn primary edu-modal-wa" target="_blank" rel="noopener"></a>
-          <button class="btn outline edu-modal-bot" type="button">Preguntar a Dr. Bot</button>
+      <div class="edu-modal-grid">
+        <div class="edu-modal-main">
+          <img class="edu-modal-image" alt="" />
+          <div class="edu-modal-body">
+            <span class="kicker edu-modal-kicker"></span><b class="soon-badge edu-modal-soon">Muy pronto</b>
+            <h2 id="eduModalTitle"></h2>
+            <p class="edu-modal-text"></p>
+            <ul class="edu-modal-points"></ul>
+            <div class="edu-modal-actions">
+              <a class="btn primary edu-modal-wa" target="_blank" rel="noopener"></a>
+              <button class="btn outline edu-modal-bot" type="button">Preguntar a Dr. Bot</button>
+            </div>
+          </div>
         </div>
+        <section class="edu-materials">
+          <h3>Temas y materiales</h3>
+          <ol class="edu-materials-list"></ol>
+        </section>
       </div>
+    </dialog>
+    <dialog class="doc-viewer" aria-labelledby="docViewerTitle">
+      <header class="doc-viewer-header">
+        <b id="docViewerTitle"></b>
+        <a class="doc-viewer-download" download>Descargar</a>
+        <button class="doc-viewer-close" type="button" aria-label="Cerrar">×</button>
+      </header>
+      <iframe class="doc-viewer-frame" title="Material de estudio"></iframe>
     </dialog>`);
   const modal = document.querySelector(".edu-modal");
+  const viewer = document.querySelector(".doc-viewer");
+  const viewerFrame = viewer.querySelector(".doc-viewer-frame");
   let currentTopic;
+
+  // Los PDF se ven con el lector del navegador; los PPT con el visor de Microsoft, que solo
+  // funciona en la página publicada. Donde no se pueda mostrar, el archivo se abre o se descarga.
+  const isPublished = location.protocol === "https:" && !["localhost", "127.0.0.1"].includes(location.hostname);
+  const openMaterial = (file) => {
+    const url = new URL(file.ruta, location.href).href;
+    const canShow = file.tipo === "pdf" ? navigator.pdfViewerEnabled !== false : isPublished;
+    if (!canShow) return window.open(url, "_blank", "noopener");
+    viewer.querySelector("#docViewerTitle").textContent = file.nombre;
+    viewer.querySelector(".doc-viewer-download").href = url;
+    viewerFrame.src = file.tipo === "pdf"
+      ? url
+      : `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
+    viewer.showModal();
+  };
+  const closeViewer = () => {
+    viewer.close();
+    viewerFrame.src = "about:blank";
+  };
+  viewer.querySelector(".doc-viewer-close").addEventListener("click", closeViewer);
+  viewer.addEventListener("close", () => { viewerFrame.src = "about:blank"; });
+
+  const renderMaterials = (key) => {
+    const subjects = window.DR_MATERIALES?.[key] || [];
+    modal.querySelector(".edu-materials").hidden = !subjects.length;
+    modal.classList.toggle("with-materials", subjects.length > 0);
+    modal.querySelector(".edu-materials-list").replaceChildren(...subjects.map((subject) => {
+      const item = document.createElement("li");
+      const files = document.createElement("div");
+      files.className = "edu-material-files";
+      if (!subject.archivos?.length) {
+        files.append(Object.assign(document.createElement("small"), { textContent: "Material próximamente" }));
+      }
+      subject.archivos?.forEach((file) => {
+        files.append(Object.assign(document.createElement("button"), {
+          type: "button",
+          className: `edu-material-file ${file.tipo}`,
+          textContent: `${file.tipo === "pdf" ? "📄" : "📊"} ${file.nombre}`,
+          onclick: () => openMaterial(file),
+        }));
+      });
+      item.append(Object.assign(document.createElement("span"), { textContent: subject.titulo }), files);
+      return item;
+    }));
+  };
   const openTopic = (key) => {
     const topic = educationTopics[key];
     if (!topic) return;
@@ -539,7 +602,9 @@ if (firstEducationCard) {
     const wa = modal.querySelector(".edu-modal-wa");
     wa.href = whatsappUrl(topic.wa);
     wa.textContent = topic.soon ? "Avisarme por WhatsApp" : "Más información por WhatsApp";
+    renderMaterials(key);
     modal.showModal();
+    modal.scrollTop = 0;
   };
   document.addEventListener("click", (event) => {
     const card = event.target.closest(".edu-card[data-topic]");
