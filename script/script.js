@@ -48,7 +48,9 @@ const observer = new IntersectionObserver(
 document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
 
 // El formulario llega al correo de la clínica mediante FormSubmit (sin servidor propio).
-const contactEmail = "levyfk01@gmail.com";
+// Se usa el código privado de FormSubmit para no exponer el correo en el código.
+// Solo funciona desde la página publicada: en archivos locales FormSubmit rechaza el envío.
+const formSubmitId = "0adf275317fcfc20be190ef22b6a1d42";
 const form = document.querySelector("#contactForm");
 if (form)
   form.addEventListener("submit", async (e) => {
@@ -59,15 +61,10 @@ if (form)
     const name = field("name");
     const status = form.querySelector(".form-status");
     const button = form.querySelector("button[type=submit]");
-    // FormSubmit solo está activado para la página publicada.
-    if (location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(location.hostname)) {
-      status.textContent = "El envío al correo solo funciona en la página publicada (joaocisneros.github.io).";
-      return;
-    }
     button.disabled = true;
     status.textContent = "Enviando…";
     try {
-      const response = await fetch(`https://formsubmit.co/ajax/${contactEmail}`, {
+      const response = await fetch(`https://formsubmit.co/ajax/${formSubmitId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
@@ -82,13 +79,14 @@ if (form)
       });
       const result = await response.json();
       if (!response.ok || String(result.success) !== "true") throw new Error(result.message);
-      status.textContent = `Gracias, ${name.split(" ")[0]}. Recibimos su solicitud y le responderemos pronto.`;
+      status.textContent = `¡Mensaje enviado correctamente, ${name.split(" ")[0]}! Le responderemos pronto.`;
       form.reset();
     } catch (error) {
+      // El detalle técnico queda solo en la consola, nunca a la vista del paciente.
       console.error("FormSubmit:", error.message);
       status.innerHTML = "";
       status.append(
-        "No pudimos enviar el formulario. Escríbanos por ",
+        "En este momento no pudimos enviar su mensaje. Escríbanos por ",
         Object.assign(document.createElement("a"), {
           href: whatsappUrl(`Hola, soy ${name}. Deseo orientación de Dr. Consulta.`),
           target: "_blank",
@@ -96,10 +94,6 @@ if (form)
           textContent: "WhatsApp",
         }),
         ".",
-        Object.assign(document.createElement("small"), {
-          className: "form-error-detail",
-          textContent: error.message ? `Detalle: ${error.message}` : "",
-        }),
       );
     } finally {
       button.disabled = false;
