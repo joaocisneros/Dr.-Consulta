@@ -11,13 +11,13 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles/styles.css?v=20260922-13" />
+    <link rel="stylesheet" href="styles/styles.css?v=20261024-11" />
   </head>
   <body>
     <header class="site-header solid">
       <div class="wrap nav-wrap">
         <a class="brand" href="index.html"
-          ><img src="img/logo-dc.png" alt="" /><span
+          ><img src="img/logo-dc.webp" width="256" height="256" alt="" /><span
             ><b>Dr. Consulta</b><small>Salud cerca de ti</small></span
           ></a
         ><button
@@ -40,7 +40,7 @@
       <section class="profile-hero">
         <div class="wrap profile-hero-grid">
           <div class="profile-photo">
-            <img id="profileImage" src="img/dr-carlos-mendoza.png" alt="" />
+            <img id="profileImage" src="img/dr-carlos-mendoza.webp" width="640" height="960" alt="" />
           </div>
           <div class="profile-intro">
             <span class="kicker" id="profileTag">Medicina deportiva</span>
@@ -86,19 +86,19 @@
             <span class="kicker">Reserva</span>
             <h2>Agenda una consulta</h2>
             <label
-              >Modalidad<select>
+              >Modalidad<select id="profileMode">
                 <option>Presencial</option>
                 <option>Virtual</option>
               </select></label
-            ><label>Fecha<input type="date" /></label
+            ><label>Fecha<input id="profileDate" type="date" /></label
             ><label
-              >Horario<select>
+              >Horario<select id="profileTime">
                 <option>9:00 a.m.</option>
                 <option>11:00 a.m.</option>
                 <option>4:00 p.m.</option>
               </select></label
-            ><label>Nombre<input placeholder="Tu nombre completo" /></label
-            ><button class="btn primary" id="profileBooking">
+            ><label>Nombre<input id="profilePatient" placeholder="Tu nombre completo" /></label
+            ><button class="btn primary" id="profileBooking" type="button">
               Solicitar cita →
             </button>
           </aside>
@@ -108,7 +108,7 @@
     <footer>
       <div class="wrap footer-grid">
         <div class="brand">
-          <img src="img/logo-dc.png" alt="" /><span
+          <img src="img/logo-dc.webp" width="256" height="256" alt="" /><span
             ><b>Dr. Consulta</b><small>Salud cerca de ti</small></span
           >
         </div>
@@ -121,6 +121,7 @@
         <small>© 2026 Dr. Consulta. Datos demostrativos.</small>
       </div>
     </footer>
-      <script src="script/script.js?v=20260922-16"></script>
+    <button class="top-button" aria-label="Volver arriba">↑</button>
+    <script src="script/script.js?v=20261024-11"></script>
   </body>
 </html>

@@ -4,9 +4,10 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check script/script.js && node --check worker/index.mjs",
+    "check": "node --check server.js && node --check script/script.js && node --check worker/index.mjs && node --test test/worker.test.mjs",
     "worker:dev": "wrangler dev",
-    "worker:deploy": "wrangler deploy"
+    "worker:deploy": "wrangler deploy",
+    "test": "node --test test/worker.test.mjs"
   },
   "engines": {
     "node": ">=18"

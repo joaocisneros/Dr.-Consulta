@@ -3,6 +3,15 @@ const menu = document.querySelector(".menu-toggle");
 const nav = document.querySelector(".main-nav");
 const topButton = document.querySelector(".top-button");
 
+// Número de WhatsApp de la clínica (código de país + número, sin espacios).
+const whatsappNumber = "51910038666";
+const whatsappUrl = (text) =>
+  `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
+const openWhatsApp = (text) => window.open(whatsappUrl(text), "_blank", "noopener");
+document.querySelectorAll("[data-wa]").forEach((link) => {
+  link.href = whatsappUrl(link.dataset.wa);
+});
+
 if (menu && nav) {
   menu.addEventListener("click", () => {
     const open = nav.classList.toggle("open");
@@ -42,15 +51,64 @@ const form = document.querySelector("#contactForm");
 if (form)
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const name = new FormData(form).get("name")?.trim().split(" ")[0] || "";
+    const data = new FormData(form);
+    const field = (key) => String(data.get(key) || "").trim();
+    const name = field("name");
+    openWhatsApp(
+      [
+        `Hola, soy ${name}. Deseo orientación de Dr. Consulta.`,
+        `Teléfono: ${field("phone")}`,
+        `Correo: ${field("email")}`,
+        field("message") && `Mensaje: ${field("message")}`,
+      ].filter(Boolean).join("\n"),
+    );
     form.querySelector(".form-status").textContent =
-      `Gracias${name ? `, ${name}` : ""}. Recibimos tu solicitud demostrativa.`;
+      `Gracias, ${name.split(" ")[0]}. Completa el envío en WhatsApp y te responderemos pronto.`;
     form.reset();
   });
 
+const bookingSubmit = document.querySelector(".booking-submit");
+if (bookingSubmit) {
+  const bookingBar = bookingSubmit.closest(".booking-bar");
+  bookingSubmit.addEventListener("click", () => {
+    const [specialty, doctor, mode] = [...bookingBar.querySelectorAll("select")].map(
+      (select) => (select.selectedIndex > 0 || select.name === "mode" ? select.value : ""),
+    );
+    openWhatsApp(
+      [
+        "Hola, deseo reservar una cita en Dr. Consulta.",
+        specialty && `Especialidad: ${specialty}`,
+        doctor && `Profesional: ${doctor}`,
+        `Modalidad: ${mode}`,
+        "¿Qué horarios tienen disponibles?",
+      ].filter(Boolean).join("\n"),
+    );
+  });
+}
+
+const chatMarkup = `
+  <aside class="medical-chat" aria-label="Asistente virtual de Dr. Consulta">
+    <section class="chat-panel" id="chatPanel" aria-hidden="true">
+      <header class="chat-header">
+        <div class="chat-doctor-avatar"><img src="img/dr-bot-avatar.webp" width="256" height="256" alt="Dr. Bot" /></div>
+        <div><b>Dr. Bot</b><small><i></i> Asistente virtual</small></div>
+        <button class="chat-reset" type="button" aria-label="Nueva conversación" title="Nueva conversación">↻</button>
+        <button class="chat-close" type="button" aria-label="Cerrar chat">×</button>
+      </header>
+      <div class="chat-messages" aria-live="polite">
+        <div class="chat-message bot">Hola, soy Dr. Bot, asistente de Dr. Consulta. ¿En qué puedo ayudarle?</div>
+        <div class="chat-options"><button type="button" data-chat="especialidad">Elegir especialista</button><button type="button" data-chat="cita">Reservar una cita</button><button type="button" data-chat="horario">Ver horarios</button></div>
+      </div>
+      <form class="chat-form"><input type="text" maxlength="180" placeholder="Escribe tu consulta..." aria-label="Escribe tu consulta" /><button type="submit" aria-label="Enviar mensaje">➜</button></form>
+      <small class="chat-disclaimer">Orientación general. No reemplaza una consulta médica.</small>
+    </section>
+    <button class="chat-launcher" type="button" aria-expanded="false" aria-controls="chatPanel"><span class="robot-doctor"><img src="img/dr-bot-avatar.webp" width="256" height="256" alt="" /></span><span><b>¿Necesitas ayuda?</b><small>Consulta con Dr. Bot</small></span></button>
+  </aside>`;
+document.body.insertAdjacentHTML("beforeend", chatMarkup);
+
 const medicalChat = document.querySelector(".medical-chat");
 if (medicalChat) {
-  const chatStorageKey = "drConsultaChatHistory";
+  const chatStorageKey = "drConsultaChat";
   const chatOpenKey = "drConsultaChatOpen";
   const launcher = medicalChat.querySelector(".chat-launcher");
   const panel = medicalChat.querySelector(".chat-panel");
@@ -70,34 +128,27 @@ if (medicalChat) {
   close.addEventListener("click", () => toggleChat(false));
 
   const quickAnswers = {
-    especialidad: "Cuéntame con tus propias palabras qué molestia tienes o qué tipo de atención buscas, y te orientaré con el especialista adecuado.",
-    cita: "Para reservar, indícame con qué especialista deseas atenderte y qué horario prefieres. También puedes usar el botón Agendar cita de la página.",
-    horario: "Atendemos de lunes a viernes, de 8:00 a.m. a 7:00 p.m. La disponibilidad específica depende de cada profesional.",
+    especialidad: "Con gusto le orientamos. Cuéntenos brevemente qué molestia tiene o qué tipo de atención busca, y le indicaremos la especialidad adecuada.",
+    cita: "Puede reservar por WhatsApp al +51 910 038 666 o con el botón Agendar cita. Indíquenos la especialidad y el horario que prefiere, y el equipo le confirmará la cita.",
+    horario: "Atendemos de lunes a sábado, de 8:00 a.m. a 7:00 p.m., en modalidad presencial y virtual. La disponibilidad de cada profesional se confirma por WhatsApp.",
   };
 
+  // Los errores se muestran pero no se guardan, para que no contaminen el historial.
   let chatHistory = [];
   try {
     const savedChat = JSON.parse(localStorage.getItem(chatStorageKey) || "null");
     const isRecent = savedChat && Date.now() - savedChat.savedAt < 6 * 60 * 60 * 1000;
     chatHistory = isRecent && Array.isArray(savedChat.items) ? savedChat.items : [];
-    const obsoleteError = /Gemini no pudo responder|vista demostrativa|conexión con Gemini aún no está activa|hay muchas consultas en este momento/i;
-    chatHistory = chatHistory.reduce((clean, message) => {
-      if (message.type === "bot" && obsoleteError.test(message.text || "")) {
-        if (clean.at(-1)?.type === "user") clean.pop();
-        return clean;
-      }
-      clean.push(message);
-      return clean;
-    }, []);
     if (!isRecent) localStorage.removeItem(chatStorageKey);
+    localStorage.removeItem("drConsultaChatHistory");
   } catch {
     chatHistory = [];
   }
-  const saveChatHistory = () => localStorage.setItem(
-    chatStorageKey,
-    JSON.stringify({ items: chatHistory, savedAt: Date.now() }),
-  );
-  saveChatHistory();
+  const saveChatHistory = () => {
+    try {
+      localStorage.setItem(chatStorageKey, JSON.stringify({ items: chatHistory, savedAt: Date.now() }));
+    } catch {}
+  };
   if (chatHistory.length) {
     messages.querySelector(".chat-message.bot")?.remove();
     messages.querySelector(".chat-options")?.remove();
@@ -123,7 +174,7 @@ if (medicalChat) {
     toggleChat(true);
     requestAnimationFrame(() => { messages.scrollTop = messages.scrollHeight; });
   }
-  reset?.addEventListener("click", () => {
+  reset.addEventListener("click", () => {
     localStorage.removeItem(chatStorageKey);
     sessionStorage.setItem(chatOpenKey, "true");
     location.reload();
@@ -145,11 +196,13 @@ if (medicalChat) {
     messages.appendChild(waiting);
     messages.scrollTop = messages.scrollHeight;
     try {
-      const localHost = ["localhost", "127.0.0.1", ""].includes(location.hostname);
-      const apiUrl = localHost
-        ? "http://localhost:4317/api/chat"
-        : "https://dr-consulta-api.dr-consulta.workers.dev/api/chat";
-      const response = await fetch(apiUrl, {
+      const productionApi = "https://dr-consulta-api.dr-consulta.workers.dev/api/chat";
+      const apiUrl = location.port === "4317"
+        ? "/api/chat"
+        : ["localhost", "127.0.0.1", ""].includes(location.hostname)
+          ? "http://localhost:4317/api/chat"
+          : productionApi;
+      const request = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -159,13 +212,19 @@ if (medicalChat) {
             text: item.text,
           })),
         }),
+      };
+      // Si el servidor local está apagado (por ejemplo, con Live Server), se usa el Worker publicado.
+      const response = await fetch(apiUrl, request).catch((error) => {
+        if (apiUrl === productionApi) throw error;
+        return fetch(productionApi, request);
       });
       const data = await response.json();
       waiting.remove();
-      addMessage(data.answer || data.error || "No pude responder en este momento.", "bot");
+      if (response.ok && data.answer) addMessage(data.answer, "bot");
+      else addMessage(data.error || "No pude responder en este momento.", "bot", false);
     } catch {
       waiting.remove();
-      addMessage("El asistente no está disponible temporalmente. Inténtalo nuevamente en unos minutos.", "bot");
+      addMessage("El asistente no está disponible temporalmente. Inténtalo nuevamente en unos minutos.", "bot", false);
     } finally {
       chatBusy = false;
       chatInput.disabled = false;
@@ -186,15 +245,17 @@ if (medicalChat) {
 const filterButtons = document.querySelectorAll(".filter");
 const doctorCards = document.querySelectorAll(".directory-grid .doctor-card");
 const doctorSearch = document.querySelector("#doctorSearch");
+const normalize = (text) =>
+  text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
 function filterDoctors() {
   if (!doctorCards.length) return;
   const active =
     document.querySelector(".filter.active")?.dataset.filter || "all";
-  const query = (doctorSearch?.value || "").toLowerCase().trim();
+  const query = normalize(doctorSearch?.value || "");
   let visible = 0;
   doctorCards.forEach((card) => {
     const categoryMatch = active === "all" || card.dataset.category === active;
-    const textMatch = !query || card.dataset.search.includes(query);
+    const textMatch = !query || normalize(card.dataset.search).includes(query);
     const show = categoryMatch && textMatch;
     card.classList.toggle("hidden", !show);
     if (show) visible++;
@@ -214,8 +275,8 @@ doctorSearch?.addEventListener("input", filterDoctors);
 
 const specialtyFromUrl = new URLSearchParams(location.search).get("especialidad");
 if (specialtyFromUrl && filterButtons.length) {
-  const matchingFilter = document.querySelector(
-    `.filter[data-filter="${specialtyFromUrl}"]`,
+  const matchingFilter = [...filterButtons].find(
+    (button) => button.dataset.filter === specialtyFromUrl,
   );
   if (matchingFilter) {
     filterButtons.forEach((button) => button.classList.remove("active"));
@@ -224,9 +285,11 @@ if (specialtyFromUrl && filterButtons.length) {
   }
 }
 
-const topicsSlider = document.querySelector(".topics-slider");
-const topicsTrack = document.querySelector(".topics-track");
-if (topicsSlider && topicsTrack) {
+// Cada carrusel usa las flechas de su propio encabezado; el segundo arranca desfasado.
+document.querySelectorAll(".topics-slider").forEach((topicsSlider, index) => {
+  const topicsTrack = topicsSlider.querySelector(".topics-track");
+  const controls = topicsSlider.previousElementSibling;
+  if (!topicsTrack) return;
   const originalCards = [...topicsTrack.children];
   originalCards.forEach((card) => {
     const clone = card.cloneNode(true);
@@ -249,11 +312,14 @@ if (topicsSlider && topicsTrack) {
     }, 520);
   };
 
-  document.querySelector(".topic-next")?.addEventListener("click", () => moveTopics(1));
-  document.querySelector(".topic-prev")?.addEventListener("click", () => moveTopics(-1));
+  controls?.querySelector(".topic-next")?.addEventListener("click", () => moveTopics(1));
+  controls?.querySelector(".topic-prev")?.addEventListener("click", () => moveTopics(-1));
 
   if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    let topicTimer = window.setInterval(() => moveTopics(1), 3200);
+    let topicTimer;
+    window.setTimeout(() => {
+      topicTimer = window.setInterval(() => moveTopics(1), 3200);
+    }, index * 1600);
     const pauseTopics = () => window.clearInterval(topicTimer);
     const resumeTopics = () => {
       window.clearInterval(topicTimer);
@@ -264,81 +330,47 @@ if (topicsSlider && topicsTrack) {
     topicsSlider.addEventListener("touchstart", pauseTopics, { passive: true });
     topicsSlider.addEventListener("touchend", resumeTopics, { passive: true });
   }
-}
+});
 
-const doctors = {
-  carlos: {
-    name: "Dr. Carlos Mendoza",
-    tag: "Medicina deportiva",
-    specialty: "Especialista en Medicina Deportiva",
-    license: "CMP 123456",
-    experience: "10 años de experiencia",
-    image: "img/dr-carlos-mendoza.png",
-    summary: "Prevención y recuperación de lesiones deportivas.",
-    bio: "Especialista en valoración y recuperación funcional.",
-    services: [
-      "Evaluación deportiva",
-      "Prevención de lesiones",
-      "Recuperación funcional",
-      "Retorno a la actividad",
-    ],
-    wa: "Hola, deseo una cita con el Dr. Carlos Mendoza",
-  },
-  ana: {
-    name: "Dra. Ana Torres",
-    tag: "Nutrición clínica",
-    specialty: "Especialista en Nutrición Clínica",
-    license: "CNP 12345",
-    experience: "8 años de experiencia",
-    image: "img/dra-ana-torres.png",
-    summary: "Evaluación y planes nutricionales personalizados.",
-    bio: "Especialista en nutrición clínica y educación alimentaria.",
-    services: [
-      "Evaluación nutricional",
-      "Plan alimentario",
-      "Nutrición metabólica",
-      "Seguimiento",
-    ],
-    wa: "Hola, deseo una cita con la Dra. Ana Torres",
-  },
-  luis: {
-    name: "Dr. Luis Ramírez",
-    tag: "Medicina familiar",
-    specialty: "Especialista en Medicina Familiar",
-    license: "CMP 654321",
-    experience: "15 años de experiencia",
-    image: "img/dr-luis-ramirez.png",
-    summary: "Prevención y atención médica para adultos y familias.",
-    bio: "Especialista en prevención y seguimiento integral.",
-    services: [
-      "Consulta general",
-      "Control preventivo",
-      "Seguimiento",
-      "Orientación familiar",
-    ],
-    wa: "Hola, deseo una cita con el Dr. Luis Ramírez",
-  },
-};
 const profile = document.querySelector("#doctorProfile");
 if (profile) {
   const key = new URLSearchParams(location.search).get("doctor") || "carlos";
-  const d = doctors[key] || doctors.carlos;
-  document.title = `${d.name} | Dr. Consulta`;
-  document.querySelector("#profileImage").src = d.image;
-  document.querySelector("#profileImage").alt = d.name;
-  document.querySelector("#profileTag").textContent = d.tag;
-  document.querySelector("#profileName").textContent = d.name;
-  document.querySelector("#profileSpecialty").textContent = d.specialty;
-  document.querySelector("#profileLicense").textContent = d.license;
-  document.querySelector("#profileExperience").textContent = d.experience;
-  document.querySelector("#profileSummary").textContent = d.summary;
-  document.querySelector("#profileBio").textContent = d.bio;
-  document.querySelector("#profileServices").innerHTML = d.services
-    .map((s) => `<span>${s}</span>`)
-    .join("");
-  document.querySelector("#profileWhatsapp").href =
-    `https://wa.me/51999999999?text=${encodeURIComponent(d.wa)}`;
+  let d = { name: document.querySelector("#profileName").textContent, wa: "Hola, deseo una cita" };
+  const renderProfile = (doctors) => {
+    d = doctors[key] || doctors.carlos;
+    document.title = `${d.name} | Dr. Consulta`;
+    document.querySelector("#profileImage").src = d.image;
+    document.querySelector("#profileImage").alt = d.name;
+    document.querySelector("#profileTag").textContent = d.tag;
+    document.querySelector("#profileName").textContent = d.name;
+    document.querySelector("#profileSpecialty").textContent = d.specialty;
+    document.querySelector("#profileLicense").textContent = d.license;
+    document.querySelector("#profileExperience").textContent = d.experience;
+    document.querySelector("#profileSummary").textContent = d.summary;
+    document.querySelector("#profileBio").textContent = d.bio;
+    document.querySelector("#profileServices").replaceChildren(
+      ...d.services.map((service) => Object.assign(document.createElement("span"), { textContent: service })),
+    );
+    document.querySelector("#profileWhatsapp").href = whatsappUrl(d.wa);
+  };
+  profile.classList.add("loading");
+  fetch("data/doctors.json")
+    .then((response) => response.json())
+    .then(renderProfile)
+    .catch(() => { document.querySelector("#profileWhatsapp").href = whatsappUrl(d.wa); })
+    .finally(() => profile.classList.remove("loading"));
+
   document.querySelector("#profileBooking").addEventListener("click", () => {
-    location.href = `https://wa.me/51999999999?text=${encodeURIComponent(d.wa + " - deseo confirmar fecha y horario")}`;
+    const field = (id) => document.querySelector(id).value.trim();
+    const date = field("#profileDate");
+    openWhatsApp(
+      [
+        d.wa,
+        `Modalidad: ${field("#profileMode")}`,
+        date && `Fecha preferida: ${date.split("-").reverse().join("/")}`,
+        `Horario preferido: ${field("#profileTime")}`,
+        field("#profilePatient") && `Nombre: ${field("#profilePatient")}`,
+      ].filter(Boolean).join("\n"),
+    );
   });
 }

@@ -1,0 +1,38 @@
+{
+  "carlos": {
+    "name": "Dr. Carlos Mendoza",
+    "tag": "Medicina deportiva",
+    "specialty": "Especialista en Medicina Deportiva",
+    "license": "CMP 123456",
+    "experience": "10 años de experiencia",
+    "image": "img/dr-carlos-mendoza.webp",
+    "summary": "Prevención y recuperación de lesiones deportivas.",
+    "bio": "Especialista en valoración y recuperación funcional.",
+    "services": ["Evaluación deportiva", "Prevención de lesiones", "Recuperación funcional", "Retorno a la actividad"],
+    "wa": "Hola, deseo una cita con el Dr. Carlos Mendoza"
+  },
+  "ana": {
+    "name": "Dra. Ana Torres",
+    "tag": "Nutrición clínica",
+    "specialty": "Especialista en Nutrición Clínica",
+    "license": "CNP 12345",
+    "experience": "8 años de experiencia",
+    "image": "img/dra-ana-torres.webp",
+    "summary": "Evaluación y planes nutricionales personalizados.",
+    "bio": "Especialista en nutrición clínica y educación alimentaria.",
+    "services": ["Evaluación nutricional", "Plan alimentario", "Nutrición metabólica", "Seguimiento"],
+    "wa": "Hola, deseo una cita con la Dra. Ana Torres"
+  },
+  "luis": {
+    "name": "Dr. Luis Ramírez",
+    "tag": "Medicina familiar",
+    "specialty": "Especialista en Medicina Familiar",
+    "license": "CMP 654321",
+    "experience": "15 años de experiencia",
+    "image": "img/dr-luis-ramirez.webp",
+    "summary": "Prevención y atención médica para adultos y familias.",
+    "bio": "Especialista en prevención y seguimiento integral.",
+    "services": ["Consulta general", "Control preventivo", "Seguimiento", "Orientación familiar"],
+    "wa": "Hola, deseo una cita con el Dr. Luis Ramírez"
+  }
+}

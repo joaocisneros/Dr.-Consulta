@@ -1,6 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const { pathToFileURL } = require("url");
 
 const root = __dirname;
 const envFile = path.join(root, ".env");
@@ -12,62 +13,61 @@ if (fs.existsSync(envFile)) {
 }
 
 const port = Number(process.env.PORT || 4317);
-const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
-const mime = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".png":"image/png", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".webp":"image/webp" };
+const mime = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".json":"application/json; charset=utf-8", ".png":"image/png", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".webp":"image/webp", ".svg":"image/svg+xml", ".ico":"image/x-icon" };
+const publicFolders = new Set(["img", "data", "script", "styles"]);
 const limits = new Map();
+// El chat local usa el mismo código que el Worker publicado en Cloudflare.
+const worker = import(pathToFileURL(path.join(root, "worker", "index.mjs")).href).then((module) => module.default);
+const workerEnv = { ...process.env, SITE_URL: `http://localhost:${port}/` };
 
-function json(res, status, data) {
-  res.writeHead(status, { "Content-Type":"application/json; charset=utf-8", "Cache-Control":"no-store", "Access-Control-Allow-Origin":"*" });
-  res.end(JSON.stringify(data));
+async function callWorker(req, res, body) {
+  // Las páginas abiertas con doble clic (file://) envían Origin "null"; solo se acepta en este servidor local.
+  const fromFile = req.headers.origin === "null";
+  const origin = fromFile ? "http://localhost:4317" : req.headers.origin || "";
+  const headers = { "Origin":origin, "Content-Type":req.headers["content-type"] || "application/json" };
+  const request = new Request(`http://localhost:${port}${req.url}`, { method:req.method, headers, body });
+  const response = await (await worker).fetch(request, workerEnv, { waitUntil() {} });
+  const responseHeaders = Object.fromEntries(response.headers);
+  if (fromFile) responseHeaders["access-control-allow-origin"] = "null";
+  res.writeHead(response.status, responseHeaders);
+  res.end(await response.text());
 }
 
 async function chat(req, res) {
+  if (req.method === "OPTIONS") return callWorker(req, res);
   const ip = req.socket.remoteAddress || "local";
   const now = Date.now();
   const recent = (limits.get(ip) || []).filter((time) => now - time < 60000);
-  if (recent.length >= 12) return json(res, 429, { error:"Espera un momento antes de enviar otra consulta." });
+  if (recent.length >= 12) {
+    res.writeHead(429, { "Content-Type":"application/json; charset=utf-8" });
+    return res.end(JSON.stringify({ error:"Espera un momento antes de enviar otra consulta." }));
+  }
   recent.push(now); limits.set(ip, recent);
   let raw = "";
   for await (const chunk of req) {
     raw += chunk;
-    if (raw.length > 8000) return json(res, 413, { error:"Mensaje demasiado extenso." });
-  }
-  let message;
-  try { message = JSON.parse(raw).message?.trim(); } catch { return json(res, 400, { error:"Solicitud inválida." }); }
-  if (!message || message.length > 500) return json(res, 400, { error:"Escribe una consulta breve." });
-  if (!process.env.GEMINI_API_KEY) return json(res, 503, { error:"La API de Gemini todavía no está configurada en el servidor." });
-
-  const system = `Eres Dr. Bot, asistente virtual de Dr. Consulta. Responde en español, de forma amable, profesional y muy breve: máximo 55 palabras. Usa frases cortas y texto plano, sin Markdown, asteriscos, títulos ni listas largas. La clínica atiende de lunes a viernes, de 8:00 a.m. a 7:00 p.m. Solo brindas orientación general y ayudas a elegir entre medicina familiar, medicina deportiva y nutrición clínica. No diagnostiques, no prescribas medicamentos y no inventes datos. Si hay dolor de pecho, dificultad para respirar, desmayo, sangrado intenso, riesgo de autolesión u otra posible emergencia, indica buscar servicios de emergencia inmediatamente. Recuerda que una respuesta no reemplaza una consulta médica.`;
-  try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json", "x-goog-api-key":process.env.GEMINI_API_KEY },
-      body:JSON.stringify({ system_instruction:{ parts:[{ text:system }] }, contents:[{ role:"user", parts:[{ text:message }] }], generationConfig:{ maxOutputTokens:600, thinkingConfig:{ thinkingLevel:"minimal" } } })
-    });
-    const data = await response.json();
-    if (response.status === 429) return json(res, 429, { error:"Hay muchas consultas en este momento. Espera 30 segundos e inténtalo nuevamente." });
-    if (!response.ok) {
-      console.error("Gemini API:", response.status, data.error?.message || "Error desconocido");
-      return json(res, 502, { error:"Gemini rechazó la solicitud. Revisa la clave, el modelo y la cuota." });
+    if (raw.length > 8000) {
+      res.writeHead(413, { "Content-Type":"application/json; charset=utf-8" });
+      return res.end(JSON.stringify({ error:"Mensaje demasiado extenso." }));
     }
-    const answer = data.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("").trim();
-    if (!answer) return json(res, 502, { error:"Gemini no devolvió una respuesta." });
-    return json(res, 200, { answer });
-  } catch {
-    return json(res, 502, { error:"No se pudo contactar con Gemini." });
   }
+  return callWorker(req, res, raw);
+}
+
+function isPublic(relative) {
+  const parts = relative.split(/[\\/]/);
+  return parts.length === 1 ? /\.html$/.test(relative) : publicFolders.has(parts[0]);
 }
 
 http.createServer(async (req, res) => {
-  if (req.method === "OPTIONS" && req.url === "/api/chat") {
-    res.writeHead(204, { "Access-Control-Allow-Origin":"*", "Access-Control-Allow-Methods":"POST, OPTIONS", "Access-Control-Allow-Headers":"Content-Type" });
-    return res.end();
+  if (req.url === "/api/chat" && (req.method === "POST" || req.method === "OPTIONS")) {
+    return chat(req, res).catch(() => { res.writeHead(500); res.end(); });
   }
-  if (req.method === "POST" && req.url === "/api/chat") return chat(req, res);
-  const requestPath = decodeURIComponent((req.url || "/").split("?")[0]);
-  const relative = requestPath === "/" ? "index.html" : requestPath.replace(/^\/+/, "");
-  const file = path.resolve(root, relative);
-  if (!file.startsWith(root) || /(^|[\\/])(\.env|\.git|server\.js|package\.json)/.test(file)) { res.writeHead(404); return res.end("No encontrado"); }
+  let requestPath;
+  try { requestPath = decodeURIComponent((req.url || "/").split("?")[0]); } catch { res.writeHead(400); return res.end(); }
+  const file = path.resolve(root, requestPath === "/" ? "index.html" : requestPath.replace(/^\/+/, ""));
+  const relative = path.relative(root, file);
+  if (relative.startsWith("..") || path.isAbsolute(relative) || !isPublic(relative)) { res.writeHead(404); return res.end("No encontrado"); }
   fs.readFile(file, (error, content) => {
     if (error) { res.writeHead(404); return res.end("No encontrado"); }
     res.writeHead(200, { "Content-Type":mime[path.extname(file).toLowerCase()] || "application/octet-stream" });
