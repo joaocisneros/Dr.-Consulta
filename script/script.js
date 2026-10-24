@@ -104,6 +104,7 @@ if (form)
     }
   });
 
+// Mientras no exista el sistema de citas, la reserva rápida le pregunta a Dr. Bot con lo que eligió el paciente.
 const bookingSubmit = document.querySelector(".booking-submit");
 if (bookingSubmit) {
   const bookingBar = bookingSubmit.closest(".booking-bar");
@@ -111,15 +112,13 @@ if (bookingSubmit) {
     const [specialty, doctor, mode] = [...bookingBar.querySelectorAll("select")].map(
       (select) => (select.selectedIndex > 0 || select.name === "mode" ? select.value : ""),
     );
-    openWhatsApp(
-      [
-        "Hola, deseo reservar una cita en Dr. Consulta.",
-        specialty && `Especialidad: ${specialty}`,
-        doctor && `Profesional: ${doctor}`,
-        `Modalidad: ${mode}`,
-        "¿Qué horarios tienen disponibles?",
-      ].filter(Boolean).join("\n"),
-    );
+    const request = [
+      "Quisiera reservar una cita",
+      specialty && `de ${specialty}`,
+      doctor && `con ${doctor === "Dra. Ana Torres" ? "la" : "el"} ${doctor}`,
+      `en modalidad ${mode.toLowerCase()}`,
+    ].filter(Boolean).join(" ");
+    window.askDrBot?.(`${request}. ¿Qué horarios tienen disponibles?`);
   });
 }
 
@@ -286,6 +285,13 @@ if (medicalChat) {
       medicalChat.querySelectorAll(".chat-form button").forEach((button) => { button.disabled = false; });
       chatInput.focus();
     }
+  };
+  // Permite que otras partes de la página (como la reserva rápida) abran el chat con una consulta.
+  window.askDrBot = (text) => {
+    toggleChat(true);
+    if (chatBusy) return;
+    addMessage(text, "user");
+    askGemini(text);
   };
   chatForm.addEventListener("submit", (event) => {
     event.preventDefault();
