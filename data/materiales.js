@@ -24,7 +24,29 @@ window.DR_MATERIALES = {
     { titulo: "Gestión en Salud", archivos: [] },
     { titulo: "Resolución de simulacros", archivos: [] },
   ],
-  emergencia: [],
-  residentado: [],
-  temas: [],
+  // Propuestas pendientes de confirmar con el cliente (se muestran con la etiqueta "Propuesta").
+  emergencia: [
+    { titulo: "Soporte vital básico y RCP", archivos: [] },
+    { titulo: "Atención inicial del trauma", archivos: [] },
+    { titulo: "Urgencias pediátricas", archivos: [] },
+    { titulo: "Emergencias obstétricas", archivos: [] },
+  ],
+  residentado: [
+    { titulo: "Medicina Interna", archivos: [] },
+    { titulo: "Pediatría", archivos: [] },
+    { titulo: "Ginecología y Obstetricia", archivos: [] },
+    { titulo: "Cirugía General", archivos: [] },
+    { titulo: "Salud Pública", archivos: [] },
+    { titulo: "Simulacros de examen", archivos: [] },
+  ],
+  temas: [
+    { titulo: "Anatomía", archivos: [] },
+    { titulo: "Fisiología", archivos: [] },
+    { titulo: "Farmacología", archivos: [] },
+    { titulo: "Patología", archivos: [] },
+    { titulo: "Medicina Interna", archivos: [] },
+  ],
 };
+
+// Secciones cuya organización aún es una propuesta. Quitar cada una cuando el cliente la confirme.
+window.DR_PROPUESTAS = ["emergencia", "residentado", "temas"];

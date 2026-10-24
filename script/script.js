@@ -473,7 +473,7 @@ const educationTopics = {
   },
   emergencia: {
     kicker: "Urgencias",
-    unit: ["Módulo", "Módulos"],
+    unit: ["Taller", "Talleres"],
     title: "Emergencia",
     image: "img/formacion-emergencia.webp?v=2",
     text: "Formación en la atención inicial de pacientes en situaciones de urgencia y emergencia.",
@@ -482,7 +482,7 @@ const educationTopics = {
   },
   residentado: {
     kicker: "Examen",
-    unit: ["Módulo", "Módulos"],
+    unit: ["Área", "Áreas"],
     title: "Residentado",
     image: "img/formacion-residentado.webp?v=2",
     text: "Preparación para el examen de Residentado Médico, con un repaso ordenado de las áreas más evaluadas.",
@@ -491,7 +491,7 @@ const educationTopics = {
   },
   temas: {
     kicker: "Actualización",
-    unit: ["Clase", "Clases"],
+    unit: ["Curso", "Cursos"],
     title: "Temas médicos",
     image: "img/formacion-temas-medicos.webp?v=2",
     text: "Contenido de actualización en ciencias básicas y clínicas para estudiantes y profesionales de la salud.",
@@ -571,7 +571,11 @@ if (firstEducationCard) {
   const renderMaterials = (key) => {
     const subjects = window.DR_MATERIALES?.[key] || [];
     const [unit, units] = educationTopics[key].unit || ["Módulo", "Módulos"];
-    modal.querySelector(".edu-materials-title").textContent = `${units} y materiales`;
+    const materialsTitle = modal.querySelector(".edu-materials-title");
+    materialsTitle.textContent = `${units} y materiales`;
+    if (window.DR_PROPUESTAS?.includes(key)) {
+      materialsTitle.append(Object.assign(document.createElement("b"), { className: "edu-proposal", textContent: "Propuesta" }));
+    }
     modal.querySelector(".edu-materials").hidden = !subjects.length;
     modal.classList.toggle("with-materials", subjects.length > 0);
     modal.querySelector(".edu-materials-list").replaceChildren(...subjects.map((subject) => {
