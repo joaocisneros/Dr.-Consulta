@@ -49,8 +49,12 @@ document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
 
 // El formulario llega al correo de la clínica mediante FormSubmit (sin servidor propio).
 // Se usa el código privado de FormSubmit para no exponer el correo en el código.
-// Solo funciona desde la página publicada: en archivos locales FormSubmit rechaza el envío.
+// FormSubmit rechaza los archivos locales, así que en la PC se envía a través de server.js (npm start).
 const formSubmitId = "0adf275317fcfc20be190ef22b6a1d42";
+const isLocalPage = location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(location.hostname);
+const contactUrl = isLocalPage
+  ? "http://localhost:4317/api/contact"
+  : `https://formsubmit.co/ajax/${formSubmitId}`;
 const form = document.querySelector("#contactForm");
 if (form)
   form.addEventListener("submit", async (e) => {
@@ -64,7 +68,7 @@ if (form)
     button.disabled = true;
     status.textContent = "Enviando…";
     try {
-      const response = await fetch(`https://formsubmit.co/ajax/${formSubmitId}`, {
+      const response = await fetch(contactUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({

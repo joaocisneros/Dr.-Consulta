@@ -54,6 +54,26 @@ async function chat(req, res) {
   return callWorker(req, res, raw);
 }
 
+// FormSubmit rechaza envíos desde archivos locales; el servidor los reenvía como la página publicada.
+const formSubmitId = process.env.FORMSUBMIT_ID || "0adf275317fcfc20be190ef22b6a1d42";
+const publishedSite = "https://joaocisneros.github.io/Dr.-Consulta/";
+async function contact(req, res) {
+  const cors = { "Access-Control-Allow-Origin":req.headers.origin || "*", "Access-Control-Allow-Methods":"POST, OPTIONS", "Access-Control-Allow-Headers":"Content-Type, Accept" };
+  if (req.method === "OPTIONS") { res.writeHead(204, cors); return res.end(); }
+  let raw = "";
+  for await (const chunk of req) {
+    raw += chunk;
+    if (raw.length > 8000) { res.writeHead(413, cors); return res.end(); }
+  }
+  const response = await fetch(`https://formsubmit.co/ajax/${formSubmitId}`, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Accept":"application/json", "Origin":new URL(publishedSite).origin, "Referer":publishedSite },
+    body:raw,
+  });
+  res.writeHead(response.status, { ...cors, "Content-Type":"application/json; charset=utf-8" });
+  res.end(await response.text());
+}
+
 function isPublic(relative) {
   const parts = relative.split(/[\\/]/);
   return parts.length === 1 ? /\.html$/.test(relative) : publicFolders.has(parts[0]);
@@ -62,6 +82,9 @@ function isPublic(relative) {
 http.createServer(async (req, res) => {
   if (req.url === "/api/chat" && (req.method === "POST" || req.method === "OPTIONS")) {
     return chat(req, res).catch(() => { res.writeHead(500); res.end(); });
+  }
+  if (req.url === "/api/contact" && (req.method === "POST" || req.method === "OPTIONS")) {
+    return contact(req, res).catch(() => { res.writeHead(502); res.end(); });
   }
   let requestPath;
   try { requestPath = decodeURIComponent((req.url || "/").split("?")[0]); } catch { res.writeHead(400); return res.end(); }
