@@ -459,3 +459,108 @@ if (profile) {
     );
   });
 }
+
+// Modal de Formación médica: se abre al hacer clic en cada tarjeta (también en las copias del carrusel).
+const educationTopics = {
+  serums: {
+    kicker: "Preparación",
+    title: "SERUMS",
+    image: "img/formacion-serums.webp?v=3",
+    text: "Acompañamiento para profesionales de la salud que se preparan para el Servicio Rural y Urbano Marginal de Salud y para atender en comunidades de la costa, la sierra y la selva.",
+    points: ["Orientación sobre el proceso y los requisitos", "Repaso de temas clave de atención primaria", "Casos prácticos de atención en zonas rurales"],
+    wa: "Hola, deseo información sobre la preparación para el SERUMS",
+  },
+  emergencia: {
+    kicker: "Urgencias",
+    title: "Emergencia",
+    image: "img/formacion-emergencia.webp?v=2",
+    text: "Formación en la atención inicial de pacientes en situaciones de urgencia y emergencia.",
+    points: ["Evaluación inicial y priorización del paciente", "Manejo de las emergencias más frecuentes", "Casos clínicos para la toma de decisiones"],
+    wa: "Hola, deseo información sobre los temas de Emergencia",
+  },
+  residentado: {
+    kicker: "Examen",
+    title: "Residentado",
+    image: "img/formacion-residentado.webp?v=2",
+    text: "Preparación para el examen de Residentado Médico, con un repaso ordenado de las áreas más evaluadas.",
+    points: ["Repaso por especialidades y áreas clave", "Práctica con preguntas tipo examen", "Estrategias de estudio y organización del tiempo"],
+    wa: "Hola, deseo información sobre la preparación para el Residentado",
+  },
+  temas: {
+    kicker: "Actualización",
+    title: "Temas médicos",
+    image: "img/formacion-temas-medicos.webp?v=2",
+    text: "Contenido de actualización en ciencias básicas y clínicas para estudiantes y profesionales de la salud.",
+    points: ["Anatomía, Fisiología y Farmacología", "Patología y Medicina Interna", "Material de repaso para consulta permanente"],
+    wa: "Hola, deseo información sobre los temas médicos",
+  },
+  educativa: {
+    kicker: "Clases con docentes especialistas",
+    title: "Medicina educativa",
+    image: "img/formacion-medicina-educativa.webp?v=2",
+    soon: true,
+    text: "Estamos preparando clases con docentes especialistas. Escríbanos y le avisaremos en cuanto se abran las inscripciones.",
+    points: ["Clases con docentes especialistas", "Contenido organizado por áreas de la medicina"],
+    wa: "Hola, deseo que me avisen cuando se lance Medicina educativa",
+  },
+};
+const firstEducationCard = document.querySelector(".edu-card[data-topic]");
+if (firstEducationCard) {
+  document.body.insertAdjacentHTML("beforeend", `
+    <dialog class="edu-modal" aria-labelledby="eduModalTitle">
+      <button class="edu-modal-close" type="button" aria-label="Cerrar">×</button>
+      <img class="edu-modal-image" alt="" />
+      <div class="edu-modal-body">
+        <span class="kicker edu-modal-kicker"></span><b class="soon-badge edu-modal-soon">Muy pronto</b>
+        <h2 id="eduModalTitle"></h2>
+        <p class="edu-modal-text"></p>
+        <ul class="edu-modal-points"></ul>
+        <div class="edu-modal-actions">
+          <a class="btn primary edu-modal-wa" target="_blank" rel="noopener"></a>
+          <button class="btn outline edu-modal-bot" type="button">Preguntar a Dr. Bot</button>
+        </div>
+      </div>
+    </dialog>`);
+  const modal = document.querySelector(".edu-modal");
+  let currentTopic;
+  const openTopic = (key) => {
+    const topic = educationTopics[key];
+    if (!topic) return;
+    currentTopic = topic;
+    modal.querySelector(".edu-modal-image").src = topic.image;
+    modal.querySelector(".edu-modal-image").alt = topic.title;
+    modal.querySelector(".edu-modal-kicker").textContent = topic.kicker;
+    modal.querySelector(".edu-modal-soon").hidden = !topic.soon;
+    modal.querySelector("h2").textContent = topic.title;
+    modal.querySelector(".edu-modal-text").textContent = topic.text;
+    modal.querySelector(".edu-modal-points").replaceChildren(
+      ...topic.points.map((point) => Object.assign(document.createElement("li"), { textContent: point })),
+    );
+    const wa = modal.querySelector(".edu-modal-wa");
+    wa.href = whatsappUrl(topic.wa);
+    wa.textContent = topic.soon ? "Avisarme por WhatsApp" : "Más información por WhatsApp";
+    modal.showModal();
+  };
+  document.addEventListener("click", (event) => {
+    const card = event.target.closest(".edu-card[data-topic]");
+    if (!card) return;
+    event.preventDefault();
+    openTopic(card.dataset.topic);
+  });
+  document.addEventListener("keydown", (event) => {
+    const card = event.target.closest?.(".edu-card[data-topic][role=button]");
+    if (card && (event.key === "Enter" || event.key === " ")) {
+      event.preventDefault();
+      openTopic(card.dataset.topic);
+    }
+  });
+  modal.querySelector(".edu-modal-close").addEventListener("click", () => modal.close());
+  // Clic fuera del contenido (en el fondo oscuro) cierra el modal.
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) modal.close();
+  });
+  modal.querySelector(".edu-modal-bot").addEventListener("click", () => {
+    modal.close();
+    window.askDrBot?.(`Quisiera información sobre ${currentTopic.title}.`);
+  });
+}
