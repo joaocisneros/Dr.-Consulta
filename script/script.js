@@ -59,6 +59,11 @@ if (form)
     const name = field("name");
     const status = form.querySelector(".form-status");
     const button = form.querySelector("button[type=submit]");
+    // FormSubmit solo está activado para la página publicada.
+    if (location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(location.hostname)) {
+      status.textContent = "El envío al correo solo funciona en la página publicada (joaocisneros.github.io).";
+      return;
+    }
     button.disabled = true;
     status.textContent = "Enviando…";
     try {
@@ -79,7 +84,8 @@ if (form)
       if (!response.ok || String(result.success) !== "true") throw new Error(result.message);
       status.textContent = `Gracias, ${name.split(" ")[0]}. Recibimos su solicitud y le responderemos pronto.`;
       form.reset();
-    } catch {
+    } catch (error) {
+      console.error("FormSubmit:", error.message);
       status.innerHTML = "";
       status.append(
         "No pudimos enviar el formulario. Escríbanos por ",
@@ -90,6 +96,10 @@ if (form)
           textContent: "WhatsApp",
         }),
         ".",
+        Object.assign(document.createElement("small"), {
+          className: "form-error-detail",
+          textContent: error.message ? `Detalle: ${error.message}` : "",
+        }),
       );
     } finally {
       button.disabled = false;
