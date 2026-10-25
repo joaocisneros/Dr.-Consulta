@@ -3,6 +3,7 @@ const allowedOrigins = new Set([
   "https://dr-consulta-khm5.vercel.app",
   "https://drconsultas.vercel.app",
   "https://dr-consultas.vercel.app",
+  "https://dr-consulta.vercel.app",
   "http://localhost:4317",
   "http://127.0.0.1:4317",
   "http://localhost:5500",
