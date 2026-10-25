@@ -1,8 +1,5 @@
 const allowedOrigins = new Set([
   "https://joaocisneros.github.io",
-  "https://dr-consulta-khm5.vercel.app",
-  "https://drconsultas.vercel.app",
-  "https://dr-consultas.vercel.app",
   "https://dr-consulta.vercel.app",
   "http://localhost:4317",
   "http://127.0.0.1:4317",
@@ -12,7 +9,7 @@ const allowedOrigins = new Set([
 // Vistas previas de Vercel del proyecto (botón "Visit" o Deployments), solo de esta cuenta.
 const vercelPreview = /^https:\/\/dr-consulta[a-z0-9-]*-proyect-s-projects\.vercel\.app$/;
 const isAllowedOrigin = (origin) => allowedOrigins.has(origin) || vercelPreview.test(origin);
-const defaultSiteUrl = "https://dr-consultas.vercel.app/";
+const defaultSiteUrl = "https://dr-consulta.vercel.app/";
 
 function cors(origin) {
   return {

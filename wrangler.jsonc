@@ -6,7 +6,7 @@
   "vars": {
     "GEMINI_MODEL": "gemini-3.6-flash",
     "GEMINI_FALLBACK_MODEL": "gemini-3.5-flash-lite",
-    "SITE_URL": "https://dr-consultas.vercel.app/"
+    "SITE_URL": "https://dr-consulta.vercel.app/"
   },
   // Máximo 12 consultas por minuto por IP y 120 por minuto en total.
   "ratelimits": [
