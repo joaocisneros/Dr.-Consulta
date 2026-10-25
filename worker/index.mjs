@@ -8,11 +8,14 @@ const allowedOrigins = new Set([
   "http://localhost:5500",
   "http://127.0.0.1:5500",
 ]);
+// Vistas previas de Vercel del proyecto (botón "Visit" o Deployments), solo de esta cuenta.
+const vercelPreview = /^https:\/\/dr-consulta[a-z0-9-]*-proyect-s-projects\.vercel\.app$/;
+const isAllowedOrigin = (origin) => allowedOrigins.has(origin) || vercelPreview.test(origin);
 const defaultSiteUrl = "https://dr-consultas.vercel.app/";
 
 function cors(origin) {
   return {
-    "Access-Control-Allow-Origin": allowedOrigins.has(origin) ? origin : "https://joaocisneros.github.io",
+    "Access-Control-Allow-Origin": isAllowedOrigin(origin) ? origin : "https://joaocisneros.github.io",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Vary": "Origin",
@@ -128,7 +131,7 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin) });
     if (url.pathname === "/health") return json({ ok: true }, 200, origin);
     if (url.pathname !== "/api/chat" || request.method !== "POST") return json({ error: "No encontrado." }, 404, origin);
-    if (!allowedOrigins.has(origin)) return json({ error: "Origen no permitido." }, 403, origin);
+    if (!isAllowedOrigin(origin)) return json({ error: "Origen no permitido." }, 403, origin);
 
     // El encabezado Origin se puede falsificar fuera del navegador; el límite por IP protege la cuota de Gemini.
     const ip = request.headers.get("CF-Connecting-IP") || "local";
