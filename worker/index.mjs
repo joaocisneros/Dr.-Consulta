@@ -73,6 +73,84 @@ export async function getSiteContext(env, context) {
   return siteText;
 }
 
+// Formación médica: el bot lee data/materiales.js (programas, módulos y archivos) y
+// data/materiales-texto.json (texto extraído de los PDF/PPT con `npm run materiales`).
+const programs = {
+  serums: ["SERUMS", "Módulo"],
+  emergencia: ["Emergencia", "Taller"],
+  residentado: ["Residentado", "Área"],
+  temas: ["Temas médicos", "Curso"],
+};
+
+// materiales.js es JavaScript para que funcione al abrir la página sin servidor; aquí se lee con
+// expresiones regulares porque los Workers no pueden evaluar código.
+export function parseMaterials(source) {
+  const proposals = (source.match(/DR_PROPUESTAS\s*=\s*\[([^\]]*)\]/)?.[1] || "").match(/\w+/g) || [];
+  const sections = [...source.matchAll(/^ {2}(\w+):\s*\[/gm)];
+  return sections.flatMap((section, i) => {
+    const key = section[1];
+    const body = source.slice(section.index, sections[i + 1]?.index ?? source.length);
+    const titles = [...body.matchAll(/titulo:\s*"([^"]*)"/g)];
+    return titles.map((title, j) => {
+      const block = body.slice(title.index, titles[j + 1]?.index ?? body.length);
+      const files = [...block.matchAll(/nombre:\s*"([^"]*)",\s*ruta:\s*"([^"]*)"/g)].map((m) => ({ nombre: m[1], ruta: m[2] }));
+      return { key, number: j + 1, titulo: title[1], files, proposal: proposals.includes(key) };
+    });
+  });
+}
+
+export async function getMaterials(env, context) {
+  const siteUrl = env.SITE_URL || defaultSiteUrl;
+  const cache = globalThis.caches?.default;
+  const cacheKey = new Request(`https://dr-consulta.internal/materials?${encodeURIComponent(siteUrl)}`);
+  const cached = cache && await cache.match(cacheKey);
+  if (cached) return cached.json();
+  const read = async (path) => {
+    try {
+      const response = await fetch(new URL(path, siteUrl), { cf: { cacheTtl: 300, cacheEverything: true } });
+      return response.ok ? await response.text() : "";
+    } catch {
+      return "";
+    }
+  };
+  const [source, textsJson] = await Promise.all([read("data/materiales.js"), read("data/materiales-texto.json")]);
+  let texts = {};
+  try { texts = JSON.parse(textsJson || "{}"); } catch {}
+  const materials = { subjects: parseMaterials(source), texts };
+  if (cache) context.waitUntil(cache.put(cacheKey, Response.json(materials, { headers: { "Cache-Control": "public, max-age=300" } })));
+  return materials;
+}
+
+const words = (text) => (text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").match(/[a-z0-9]{4,}/g) || []);
+
+// Lista siempre todos los módulos; el texto de los archivos solo se incluye para los módulos
+// relacionados con la pregunta, para no gastar cuota de la IA con documentos que no hacen falta.
+export function materialsContext({ subjects = [], texts = {} } = {}, query = "") {
+  if (!subjects.length) return "";
+  const asked = new Set(words(query));
+  const index = subjects.map((s) => {
+    const [program, unit] = programs[s.key] || [s.key, "Parte"];
+    const files = s.files.length ? s.files.map((f) => f.nombre).join(", ") : "material próximamente";
+    return `${program} · ${unit} ${s.number}: ${s.titulo} (materiales: ${files})${s.proposal ? " [propuesta, por confirmar]" : ""}`;
+  });
+  const related = subjects
+    .map((s) => ({ s, score: words(`${s.titulo} ${(programs[s.key] || [s.key])[0]}`).filter((w) => asked.has(w)).length }))
+    .filter((x) => x.score > 0 && x.s.files.length)
+    .sort((a, b) => b.score - a.score);
+  let budget = 5000;
+  const contents = [];
+  for (const { s } of related) {
+    for (const file of s.files) {
+      const text = texts[file.ruta];
+      if (!text || budget <= 0) continue;
+      contents.push(`[${s.titulo} · ${file.nombre}]\n${text.slice(0, budget)}`);
+      budget -= text.length;
+    }
+  }
+  return `FORMACIÓN MÉDICA · PROGRAMAS, MÓDULOS Y MATERIALES (en la página: Formación médica → abrir el programa):\n${index.join("\n")}`
+    + (contents.length ? `\n\nCONTENIDO DE LOS MATERIALES RELACIONADOS:\n${contents.join("\n\n")}` : "");
+}
+
 export function buildSystemPrompt(siteContext) {
   return `Eres Dr. Bot, el asistente virtual de Dr. Consulta, un consultorio médico en Perú. Atiendes a pacientes y familiares que escriben desde la página web.
 
@@ -89,6 +167,7 @@ LO QUE HACES
 - No puedes reservar ni confirmar citas ni ver horarios disponibles: indica que el equipo los confirma por WhatsApp al +51 910 038 666. No envíes al paciente a botones de la página.
 - Si el paciente pide ir a WhatsApp, hablar con una persona o contactar al equipo, responde con amabilidad, escribe el número completo +51 910 038 666 (en la página se vuelve un enlace) e indica que puede hacer clic en él para escribirnos.
 - Conversa de forma natural: haz como máximo una pregunta breve cuando necesites un dato para orientar mejor (por ejemplo, desde cuándo tiene la molestia) y recuerda lo que el paciente ya dijo en la conversación.
+- Sobre Formación médica: nombra los programas, módulos y materiales que aparecen en la información. Si preguntan por el contenido de un material, resume lo que dice el CONTENIDO DE LOS MATERIALES RELACIONADOS sin inventar nada más, e indica que pueden verlo en la página (Formación médica → el programa → el módulo). Si un módulo está marcado como propuesta, aclara que aún se está confirmando.
 
 LÍMITES
 - No diagnosticas, no interpretas exámenes, no indicas medicamentos ni dosis. Si lo piden, explica con amabilidad que eso requiere una evaluación médica y ofrece agendar.
@@ -151,9 +230,15 @@ export default {
     if (!env.GEMINI_API_KEY) return json({ error: "Gemini no está configurado." }, 503, origin);
 
     const history = normalizeHistory(body.history);
-    const siteContext = await getSiteContext(env, context).catch(() => "");
+    const [siteContext, materials] = await Promise.all([
+      getSiteContext(env, context).catch(() => ""),
+      getMaterials(env, context).catch(() => undefined),
+    ]);
+    // La pregunta actual y la anterior del paciente deciden qué materiales se incluyen completos.
+    const lastUserTurn = history.filter((turn) => turn.role === "user").at(-1)?.parts[0].text || "";
+    const educationContext = materialsContext(materials, `${message} ${lastUserTurn}`);
 
-    const system = buildSystemPrompt(siteContext);
+    const system = buildSystemPrompt([siteContext, educationContext].filter(Boolean).join("\n\n"));
     try {
       const requestBody = JSON.stringify({
         system_instruction: { parts: [{ text: system }] },

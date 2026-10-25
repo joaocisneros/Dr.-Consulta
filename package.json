@@ -7,12 +7,14 @@
     "check": "node --check server.js && node --check script/script.js && node --check worker/index.mjs && node --test test/worker.test.mjs",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
-    "test": "node --test test/worker.test.mjs"
+    "test": "node --test test/worker.test.mjs",
+    "materiales": "node scripts/extraer-materiales.mjs"
   },
   "engines": {
     "node": ">=18"
   },
   "devDependencies": {
+    "pdfjs-dist": "^4.10.38",
     "wrangler": "^4.136.3"
   }
 }

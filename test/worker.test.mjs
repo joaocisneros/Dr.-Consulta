@@ -1,6 +1,6 @@
 import { test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import worker, { normalizeHistory } from "../worker/index.mjs";
+import worker, { normalizeHistory, parseMaterials, materialsContext } from "../worker/index.mjs";
 
 const realFetch = globalThis.fetch;
 const env = { GEMINI_API_KEY: "test", SITE_URL: "https://sitio.test/" };
@@ -99,4 +99,35 @@ test("normaliza el historial a turnos alternados que empiezan por el usuario", (
     { role: "model", parts: [{ text: "c" }] },
   ]);
   assert.deepEqual(normalizeHistory("no es lista"), []);
+});
+
+const sampleMaterials = `window.DR_MATERIALES = {
+  serums: [
+    { titulo: "Salud pública", archivos: [
+      { tipo: "pdf", nombre: "Guía", ruta: "materiales/serums/guia.pdf" },
+    ] },
+    { titulo: "Investigación", archivos: [] },
+  ],
+  residentado: [
+    { titulo: "Pediatría", archivos: [] },
+  ],
+};
+window.DR_PROPUESTAS = ["residentado"];`;
+
+test("lee programas, módulos y archivos de materiales.js", () => {
+  const subjects = parseMaterials(sampleMaterials);
+  assert.deepEqual(subjects.map((s) => [s.key, s.number, s.titulo, s.files.length, s.proposal]), [
+    ["serums", 1, "Salud pública", 1, false],
+    ["serums", 2, "Investigación", 0, false],
+    ["residentado", 1, "Pediatría", 0, true],
+  ]);
+});
+
+test("incluye el texto de un material solo si la pregunta trata de su módulo", () => {
+  const materials = { subjects: parseMaterials(sampleMaterials), texts: { "materiales/serums/guia.pdf": "Contenido de la guía" } };
+  const related = materialsContext(materials, "¿Qué trae el material de Salud pública?");
+  assert.match(related, /SERUMS · Módulo 1: Salud pública/);
+  assert.match(related, /Residentado · Área 1: Pediatría .*propuesta/);
+  assert.match(related, /Contenido de la guía/);
+  assert.doesNotMatch(materialsContext(materials, "me duele la rodilla"), /Contenido de la guía/);
 });
