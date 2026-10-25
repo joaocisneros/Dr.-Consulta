@@ -8,7 +8,7 @@ const allowedOrigins = new Set([
   "http://localhost:5500",
   "http://127.0.0.1:5500",
 ]);
-const defaultSiteUrl = "https://joaocisneros.github.io/Dr.-Consulta/";
+const defaultSiteUrl = "https://dr-consultas.vercel.app/";
 
 function cors(origin) {
   return {
