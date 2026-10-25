@@ -3,5 +3,9 @@
   "framework": null,
   "installCommand": "",
   "buildCommand": "",
-  "cleanUrls": false
+  "cleanUrls": false,
+  "rewrites": [
+    { "source": "/api/chat", "destination": "https://dr-consulta-api.dr-consulta.workers.dev/api/chat" },
+    { "source": "/api/contact", "destination": "https://formsubmit.co/ajax/0adf275317fcfc20be190ef22b6a1d42" }
+  ]
 }

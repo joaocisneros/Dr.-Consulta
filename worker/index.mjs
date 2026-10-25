@@ -134,11 +134,17 @@ export default {
     if (url.pathname !== "/api/chat" || request.method !== "POST") return json({ error: "No encontrado." }, 404, origin);
     if (!isAllowedOrigin(origin)) return json({ error: "Origen no permitido." }, 403, origin);
 
-    // El encabezado Origin se puede falsificar fuera del navegador; el límite por IP protege la cuota de Gemini.
-    const ip = request.headers.get("CF-Connecting-IP") || "local";
+    // El encabezado Origin se puede falsificar fuera del navegador; los límites protegen la cuota de Gemini.
+    // Las consultas que llegan reenviadas por Vercel traen la IP del paciente en X-Forwarded-For.
+    // Como ese encabezado también se puede falsificar, un límite global acota el total por minuto.
+    const ip = request.headers.get("X-Forwarded-For")?.split(",")[0].trim() || request.headers.get("CF-Connecting-IP") || "local";
     if (env.CHAT_LIMITER) {
       const { success } = await env.CHAT_LIMITER.limit({ key: ip });
       if (!success) return json({ error: "Espera un momento antes de enviar otra consulta." }, 429, origin);
+    }
+    if (env.CHAT_GLOBAL_LIMITER) {
+      const { success } = await env.CHAT_GLOBAL_LIMITER.limit({ key: "global" });
+      if (!success) return json({ error: "Hay muchas consultas en este momento. Espera 30 segundos e inténtalo nuevamente." }, 429, origin);
     }
 
     let body;

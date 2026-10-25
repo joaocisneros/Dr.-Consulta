@@ -8,8 +8,9 @@
     "GEMINI_FALLBACK_MODEL": "gemini-3.5-flash-lite",
     "SITE_URL": "https://dr-consultas.vercel.app/"
   },
-  // Máximo 12 consultas por minuto por IP.
+  // Máximo 12 consultas por minuto por IP y 120 por minuto en total.
   "ratelimits": [
-    { "name": "CHAT_LIMITER", "namespace_id": "1001", "simple": { "limit": 12, "period": 60 } }
+    { "name": "CHAT_LIMITER", "namespace_id": "1001", "simple": { "limit": 12, "period": 60 } },
+    { "name": "CHAT_GLOBAL_LIMITER", "namespace_id": "1002", "simple": { "limit": 120, "period": 60 } }
   ]
 }
