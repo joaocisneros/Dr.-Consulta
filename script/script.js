@@ -52,12 +52,13 @@ document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
 // FormSubmit rechaza los archivos locales, así que en la PC se envía a través de server.js (npm start).
 const formSubmitId = "0adf275317fcfc20be190ef22b6a1d42";
 const isLocalPage = location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(location.hostname);
-// En Vercel (o un dominio propio) el chat y el correo pasan por la misma dirección de la página
-// (vercel.json los reenvía), así los bloqueadores del navegador no los cortan. GitHub Pages no reenvía.
+// En Vercel (o un dominio propio) el chat pasa por la misma dirección de la página (vercel.json lo
+// reenvía al Worker), así los bloqueadores del navegador no lo cortan. GitHub Pages no reenvía.
+// El formulario va siempre directo a FormSubmit: rechaza los envíos reenviados desde servidores.
 const sameSiteApi = !isLocalPage && !location.hostname.endsWith("github.io");
 const contactUrl = isLocalPage
   ? "http://localhost:4317/api/contact"
-  : sameSiteApi ? "/api/contact" : `https://formsubmit.co/ajax/${formSubmitId}`;
+  : `https://formsubmit.co/ajax/${formSubmitId}`;
 const form = document.querySelector("#contactForm");
 if (form)
   form.addEventListener("submit", async (e) => {
