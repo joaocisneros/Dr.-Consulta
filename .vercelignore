@@ -7,3 +7,4 @@ package.json
 package-lock.json
 wrangler.jsonc
 .env.example
+vercel.json
